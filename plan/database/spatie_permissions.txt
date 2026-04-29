@@ -17,14 +17,17 @@
  2. TABLE: roles
  ─────────────────────────────────────────────────────────────────────────────
  id                  UUIDv7              PK
- company_id          UUIDv7 null         FK → companies.id (PENTING UNTUK SAAS)
+ company_id          UUIDv7 null         FK → companies.id
  name                string(255)         Nama role (contoh: 'Super Admin', 'Operator')
- scope               enum                'saas' | 'company' (Membedakan role internal SaaS dengan role bawaan tenant)
+ scope               enum                'saas' | 'company'
  guard_name          string(255)         Default: 'web'
  created_at          timestamp
  updated_at          timestamp
 
- *Catatan: `company_id` ditambahkan agar setiap perusahaan/tenant bisa membuat Custom Role mereka sendiri tanpa mengganggu tabel global/perusahaan lain. Untuk role bawaan sistem (seperti Super Admin), `company_id` bernilai null.
+ *Catatan Aturan Bisnis:
+ - Jika `scope` = 'saas', maka `company_id` WAJIB `null`.
+ - Jika `scope` = 'company', maka `company_id` TIDAK BOLEH `null` (harus menunjuk ke ID perusahaan tertentu).
+ - Tidak ada "Global Company Role" yang `null`. Setiap kali ada pendaftaran perusahaan (tenant) baru, role default (seperti 'Company Admin' atau 'Operator') harus di-insert langsung ke tabel ini dengan `company_id` milik mereka.
 
  3. TABLE: role_has_permissions (Pivot)
  ─────────────────────────────────────────────────────────────────────────────
