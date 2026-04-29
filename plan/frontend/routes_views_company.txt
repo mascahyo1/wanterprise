@@ -41,9 +41,10 @@
  GET  /settings/roles          -> Company/Settings/Roles.vue
  GET  /settings/profile        -> Company/Settings/Profile.vue
 
- 3. STATE MANAGEMENT (PINIA)
+ 3. STATE MANAGEMENT (PINIA / VUE COMPOSABLES)
  ─────────────────────────────────────────────────────────────────────────────
- Digunakan khusus untuk logika operasional harian perusahaan:
- - `useChatStore` : Menyimpan state obrolan aktif, unread count.
- - `useThemeStore`: Mode terang/gelap (simpan ke localStorage).
- - `useCompanyStore`: Data perusahaan saat ini (Logo, sisa saldo realtime).
+ PENTING (Catatan Arsitektur):
+ - Secara umum (80% aplikasi seperti CRUD Kontak, Campaign, Billing, dll), kita TIDAK MEMBUTUHKAN global state management (Pinia). Kita murni mengandalkan Inertia.js Props (`usePage().props`).
+ - Global State hanya digunakan secara ketat untuk kebutuhan spesifik (20% aplikasi):
+   1. `useChatStore`  : Diperlukan karena adanya inject pesan masuk secara real-time via WebSocket (Reverb) yang berjalan di luar siklus request/response Inertia. Termasuk untuk unread badges.
+   2. `useThemeStore` : Menyimpan state Light/Dark mode yang berinteraksi langsung dengan localStorage & OS Preferences.
