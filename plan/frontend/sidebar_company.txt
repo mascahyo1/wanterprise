@@ -1,0 +1,40 @@
+================================================================================
+ FRONTEND: Company Workspace Sidebar
+ Deskripsi : Pemetaan menu navigasi sidebar khusus untuk Client (Perusahaan/Tenant)
+================================================================================
+
+ Sidebar ini muncul jika user yang login memiliki `company_id` (terikat ke perusahaan).
+ *Menu yang muncul akan difilter secara dinamis berdasarkan Spatie Permissions user tersebut.
+
+ ─────────────────────────────────────────────────────────────────────────────
+ MENU ITEMS
+ ─────────────────────────────────────────────────────────────────────────────
+ 📈 Dashboard (Admin, Supervisor)
+    ├─ Aksi: Statistik harian (Pesan terkirim, sisa saldo, kualitas nomor WA).
+
+ 💬 Inbox (Semua Role)
+    ├─ Aksi: Membuka antarmuka chat utama (Live Chat).
+    ├─ Visibilitas: 
+       > Operator: Hanya melihat chat kontak/nomor yang di-assign padanya.
+       > Admin/Spv: Melihat seluruh chat dari semua nomor perusahaan.
+
+ 👥 Contacts (Semua Role)
+    ├─ Sub-menu: 
+       ├─ All Contacts (Aksi: CRUD Kontak)
+       ├─ Contact Labels (Aksi: Manajemen segmentasi/grup kontak)
+
+ 🚀 Blast Campaigns (Admin, Supervisor)
+    ├─ Aksi: Membuat, menjadwalkan, dan memantau pengiriman pesan massal.
+    ├─ Sub-menu: 
+       ├─ Campaigns List
+       ├─ Templates (Jika ingin menyimpan template pesan)
+
+ 💳 Billing & Wallet (Admin)
+    ├─ Aksi: Melihat sisa saldo prabayar, riwayat pemotongan saldo (transactions), dan tombol Top-Up.
+
+ ⚙️ Settings (Admin)
+    ├─ Sub-menu:
+       ├─ WA Numbers (Aksi: Scan QR / Setup Token, Cek status webhook Meta)
+       ├─ Team & Users (Aksi: Tambah staf, assign nomor WA / kontak ke operator)
+       ├─ Roles & Permissions (Aksi: Mengatur batas hak akses custom)
+       ├─ Company Profile (Aksi: Ubah nama, logo perusahaan)

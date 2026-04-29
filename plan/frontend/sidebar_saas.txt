@@ -1,0 +1,22 @@
+================================================================================
+ FRONTEND: SaaS Workspace Sidebar
+ Deskripsi : Pemetaan menu navigasi sidebar khusus untuk Operator SaaS (Super Admin)
+================================================================================
+
+ Sidebar ini hanya muncul jika user yang login memiliki `company_id = null` (Super Admin).
+
+ ─────────────────────────────────────────────────────────────────────────────
+ MENU ITEMS
+ ─────────────────────────────────────────────────────────────────────────────
+ 📊 Dashboard
+    ├─ Aksi: Menampilkan metrik global (Total Companies, Total Pendapatan, dll).
+ 
+ 🏢 Companies (Tenants)
+    ├─ Aksi: Menampilkan daftar perusahaan pelanggan.
+    ├─ Sub-aksi: Tambah Perusahaan, Suspend Perusahaan, Akses Login As (Menyamar sebagai admin perusahaan tersebut untuk bantuan support).
+
+ 👨‍💻 SaaS Users
+    ├─ Aksi: Manajemen user internal Wanterprise (Super Admin lain).
+
+ ⚙️ System Settings
+    ├─ Aksi: Konfigurasi global (Maintenance mode, SMTP Email, dll).
