@@ -1,0 +1,29 @@
+================================================================================
+ TABLE: company_user (Pivot Table)
+ Deskripsi : Menghubungkan user dengan perusahaan (mendukung sistem Multi-Workspace)
+================================================================================
+
+ COLUMNS
+ ─────────────────────────────────────────────────────────────────────────────
+ id                  UUIDv7              PK
+ user_id             UUIDv7              FK → users.id
+ company_id          UUIDv7              FK → companies.id
+ is_owner            boolean             Default: false (True jika user ini pembuat utama perusahaannya)
+ joined_at           timestamp           Kapan user bergabung ke workspace perusahaan ini
+
+ INDEXES
+ ─────────────────────────────────────────────────────────────────────────────
+ • UNIQUE  user_id + company_id
+ • INDEX   user_id
+ • INDEX   company_id
+
+ RELATIONS
+ ─────────────────────────────────────────────────────────────────────────────
+ • belongsTo      users
+ • belongsTo      companies
+
+ NOTES
+ ─────────────────────────────────────────────────────────────────────────────
+ • Tabel ini menjadi kunci utama yang memisahkan akses multi-tenant.
+ • Pengecekan authorization `company_id` pada URL harus memastikan bahwa `user_id` milik pengakses tercatat di tabel ini dengan `company_id` tersebut.
+================================================================================

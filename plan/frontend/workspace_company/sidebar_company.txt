@@ -42,6 +42,7 @@
  ─────────────────────────────────────────────────────────────────────────────
  UX / UI BEHAVIOR
  ─────────────────────────────────────────────────────────────────────────────
+ - Workspace Switcher: HARUS ada Dropdown "Switch Company" di Top Navbar atau pucuk atas Sidebar untuk memfasilitasi arsitektur Many-to-Many, di mana satu User bisa memiliki banyak Workspace.
  - Toggle Hide/Show: Sidebar HARUS bisa disembunyikan (full hide) dan dimunculkan (show) kembali untuk memperluas area kerja utama (terutama penting saat membuka halaman Inbox/Chat).
  - Pemicu (Trigger): Terdapat sebuah tombol/icon toggle (hamburger menu / sidebar-toggle) di area Top Navbar.
  - State Penyimpanan: Status sidebar (terbuka atau tertutup) disarankan disimpan di localStorage agar persisten antar sesi.

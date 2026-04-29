@@ -43,12 +43,14 @@
  permission_id       UUIDv7              FK → permissions.id
  model_type          string(255)         Default: 'App\Models\User'
  model_id            UUIDv7              FK → users.id
+ team_id             UUIDv7              FK → companies.id (Digunakan Spatie untuk memisahkan scope per workspace)
 
  5. TABLE: model_has_roles (Pivot)
  ─────────────────────────────────────────────────────────────────────────────
  role_id             UUIDv7              FK → roles.id
  model_type          string(255)         Default: 'App\Models\User'
  model_id            UUIDv7              FK → users.id
+ team_id             UUIDv7              FK → companies.id (Sangat krusial untuk arsitektur Many-to-Many Workspace)
 
  ─────────────────────────────────────────────────────────────────────────────
  INDEXES & RELATIONS
@@ -56,3 +58,4 @@
  - Pengecekan default bawaan Spatie (membuat unique constraint `name` + `guard_name`).
  - Pada tabel `roles`, unique constraint menjadi `name` + `guard_name` + `company_id`.
  - Relasi morphTo() dipakai Spatie secara otomatis (`model_type` & `model_id`).
+ - FITUR TEAMS: Spatie akan di-configure dengan `'teams' => true` dan `'team_foreign_key' => 'team_id'`. Kita menggunakan kolom `team_id` yang sebenarnya merujuk ke tabel `companies.id`. Hal ini memungkinkan User A menjadi 'Company Admin' di team/company X, tapi hanya menjadi 'Operator' di team/company Y.

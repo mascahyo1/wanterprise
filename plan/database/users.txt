@@ -3,40 +3,44 @@
  Deskripsi : Semua pengguna sistem — SaaS Operator & Company Operator/tim
 ================================================================================
 
- COLUMNS
+ 6. COLUMNS
  ─────────────────────────────────────────────────────────────────────────────
  id                  UUIDv7              PK
- company_id          UUIDv7 null         FK → companies.id (null = SaaS Operator)
  name                string(255)         Nama lengkap
  email               string(255)         Email login (unique)
  password            string(255)         Bcrypt hashed
  avatar              string(255) null    Path avatar/foto profil
  theme_preference    enum                light | dark | system (default: system)
  is_active           boolean             Default: true
+ is_super_admin      boolean             Default: false (Hanya true untuk pengelola aplikasi SaaS)
+ current_company_id  UUIDv7 null         FK → companies.id (Menyimpan workspace yang sedang aktif dibuka)
  last_login_at       timestamp null      Waktu login terakhir
  created_at          timestamp
  updated_at          timestamp
  deleted_at          timestamp null      Soft delete
 
- INDEXES
+ 21. INDEXES
  ─────────────────────────────────────────────────────────────────────────────
  • UNIQUE  email
- • INDEX   company_id
  • INDEX   is_active
+ • INDEX   is_super_admin
+ • INDEX   current_company_id
 
- RELATIONS
+ 27. RELATIONS
  ─────────────────────────────────────────────────────────────────────────────
- • belongsTo      companies              (users.company_id → companies.id, nullable)
+ • belongsToMany  companies              (via company_user.user_id → users.id)
+ • belongsTo      current_company        (users.current_company_id → companies.id)
  • morphMany      (Spatie) roles
  • morphMany      (Spatie) permissions
  • hasMany        messages               (messages.sent_by → users.id)
  • belongsToMany  contacts              (via contact_assignments.user_id → users.id)
  • belongsToMany  wa_numbers            (via wa_number_assignments.user_id → users.id)
 
- NOTES
+ 36. NOTES
  ─────────────────────────────────────────────────────────────────────────────
  • PK menggunakan UUIDv7 — time-sortable, aman untuk distributed system
- • company_id null = SaaS Operator
- • company_id filled = Company Operator / Company Team Member
+ • User bisa terikat pada banyak perusahaan (Many-to-Many via tabel `company_user`).
+ • `current_company_id` digunakan murni untuk alasan UX (agar saat login ulang, langsung masuk ke workspace terakhir).
+ • `is_super_admin` membedakan antara pengguna biasa dan SaaS Operator.
  • Soft delete agar history pesan & aktivitas tetap terjaga
 ================================================================================
