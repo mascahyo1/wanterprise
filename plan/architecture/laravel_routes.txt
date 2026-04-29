@@ -1,0 +1,81 @@
+================================================================================
+ ARCHITECTURE: Laravel Routes Structure
+ Deskripsi : Pemecahan file route agar mudah dibaca dan di-maintain
+================================================================================
+
+ Secara default, Laravel meletakkan semua route web di `routes/web.php` dan API di `routes/api.php`.
+ Untuk aplikasi sebesar Wanterprise (SaaS), kita akan memecahnya menjadi banyak file, lalu di-include ke dalam file utama atau di-load melalui `bootstrap/app.php` (Laravel 11/12+).
+
+ 1. STRUKTUR FOLDER ROUTES
+ ─────────────────────────────────────────────────────────────────────────────
+ /routes
+ ├── web.php               (Entry point untuk web, memuat file-file di bawahnya)
+ ├── api.php               (Entry point untuk API)
+ ├── channels.php          (Reverb / WebSocket authorization)
+ ├── console.php           (Artisan commands)
+ │
+ ├── web/                  (Direktori khusus pemecahan route web)
+ │   ├── auth.php          (Login, Register, Password Reset)
+ │   ├── saas.php          (Route untuk Super Admin: manajemen tenants, global setting)
+ │   ├── tenant.php        (Route untuk Company/Perusahaan: Dashboard, Inbox, dll)
+ │   └── billing.php       (Route khusus Top-up saldo dan transaksi)
+ │
+ └── api/                  (Direktori khusus pemecahan route API)
+     ├── webhooks.php      (Menerima webhook dari Meta API)
+     └── mobile.php        (Jika ke depannya ada aplikasi mobile)
+
+ 2. CARA INCLUDE DI LARAVEL (web.php)
+ ─────────────────────────────────────────────────────────────────────────────
+ Di dalam file `routes/web.php`, kita tidak akan menulis definisi Route secara panjang, melainkan hanya melakukan grouping dan include:
+
+ ```php
+ <?php
+ use Illuminate\Support\Facades\Route;
+
+ // 1. Authentication Routes (Tidak butuh auth middleware)
+ require __DIR__.'/web/auth.php';
+
+ // 2. Tenant / Company Routes (Butuh Auth & verifikasi Company)
+ Route::middleware(['auth', 'verified'])->group(function () {
+     
+     require __DIR__.'/web/tenant.php';
+     require __DIR__.'/web/billing.php';
+
+ });
+
+ // 3. SaaS Admin Routes (Hanya untuk Super Admin)
+ Route::middleware(['auth', 'role:super-admin'])->prefix('admin')->group(function () {
+     
+     require __DIR__.'/web/saas.php';
+
+ });
+ ```
+
+ 3. ISI FILE PECAHAN (CONTOH: tenant.php)
+ ─────────────────────────────────────────────────────────────────────────────
+ File `routes/web/tenant.php` hanya akan fokus pada modul-modul perusahaan:
+
+ ```php
+ <?php
+ use Illuminate\Support\Facades\Route;
+ use App\Http\Controllers\Tenant\InboxController;
+ use App\Http\Controllers\Tenant\CampaignController;
+
+ Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+ Route::prefix('inbox')->group(function() {
+     Route::get('/', [InboxController::class, 'index'])->name('inbox.index');
+     Route::post('/send', [InboxController::class, 'send'])->name('inbox.send');
+ });
+
+ Route::prefix('campaigns')->group(function() {
+     Route::get('/', [CampaignController::class, 'index'])->name('campaigns.index');
+     Route::get('/create', [CampaignController::class, 'create'])->name('campaigns.create');
+ });
+ ```
+
+ 4. KEUNTUNGAN PENDEKATAN INI
+ ─────────────────────────────────────────────────────────────────────────────
+ 1. Menghindari `web.php` yang membengkak hingga ribuan baris (Spaghetti code).
+ 2. Sangat mudah mencari endpoint saat debugging (misal masalah billing, tinggal buka `billing.php`).
+ 3. Mengurangi konflik *merge* (Merge Conflict) di Git jika dikerjakan dalam tim.
