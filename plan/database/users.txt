@@ -11,6 +11,7 @@
  email               string(255)         Email login (unique)
  password            string(255)         Bcrypt hashed
  avatar              string(255) null    Path avatar/foto profil
+ theme_preference    enum                light | dark | system (default: system)
  is_active           boolean             Default: true
  last_login_at       timestamp null      Waktu login terakhir
  created_at          timestamp
