@@ -19,6 +19,7 @@
  id                  UUIDv7              PK
  company_id          UUIDv7 null         FK → companies.id (PENTING UNTUK SAAS)
  name                string(255)         Nama role (contoh: 'Super Admin', 'Operator')
+ scope               enum                'saas' | 'company' (Membedakan role internal SaaS dengan role bawaan tenant)
  guard_name          string(255)         Default: 'web'
  created_at          timestamp
  updated_at          timestamp
