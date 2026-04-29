@@ -1,0 +1,71 @@
+================================================================================
+ TABLE: Laravel Defaults (Bawaan Framework Laravel 11+)
+ Deskripsi : Tabel-tabel sistem bawaan Laravel untuk session, cache, dan antrean.
+================================================================================
+
+ 1. TABLE: sessions
+ ─────────────────────────────────────────────────────────────────────────────
+ id                  string              PK
+ user_id             UUIDv7 null         FK → users.id
+ ip_address          string(45) null
+ user_agent          text null
+ payload             longtext
+ last_activity       integer             INDEX
+
+ 2. TABLE: cache
+ ─────────────────────────────────────────────────────────────────────────────
+ key                 string              PK
+ value               mediumtext
+ expiration          integer
+
+ 3. TABLE: cache_locks
+ ─────────────────────────────────────────────────────────────────────────────
+ key                 string              PK
+ owner               string
+ expiration          integer
+
+ 4. TABLE: jobs (Queue System)
+ ─────────────────────────────────────────────────────────────────────────────
+ id                  bigint              PK, Auto Increment
+ queue               string              INDEX
+ payload             longtext
+ attempts            tinyint
+ reserved_at         integer null
+ available_at        integer
+ created_at          integer
+
+ 5. TABLE: job_batches
+ ─────────────────────────────────────────────────────────────────────────────
+ id                  string              PK
+ name                string
+ total_jobs          integer
+ pending_jobs        integer
+ failed_jobs         integer
+ failed_job_ids      longtext
+ options             mediumtext null
+ cancelled_at        integer null
+ created_at          integer
+ finished_at         integer null
+
+ 6. TABLE: failed_jobs
+ ─────────────────────────────────────────────────────────────────────────────
+ id                  bigint              PK, Auto Increment
+ uuid                string              UNIQUE
+ connection          text
+ queue               text
+ payload             longtext
+ exception           longtext
+ failed_at           timestamp           Default: CURRENT_TIMESTAMP
+
+ 7. TABLE: password_reset_tokens
+ ─────────────────────────────────────────────────────────────────────────────
+ email               string              PK
+ token               string
+ created_at          timestamp null
+
+ ─────────────────────────────────────────────────────────────────────────────
+ NOTES
+ ─────────────────────────────────────────────────────────────────────────────
+ - Tabel-tabel ini akan digenerate secara otomatis oleh Laravel saat kita menjalankan `php artisan migrate` pertama kali (berasal dari migration bawaan framework).
+ - Untuk tabel `users`, kita akan memodifikasi file bawaan Laravel (`0001_01_01_000000_create_users_table.php`) agar sesuai dengan skema UUIDv7 dan multi-tenant yang sudah kita rancang di `users.txt`.
+ - Job table (jobs, failed_jobs, job_batches) sangat krusial karena kita akan menggunakannya besar-besaran untuk fitur pengiriman pesan (Webhooks, Blast Campaign).
