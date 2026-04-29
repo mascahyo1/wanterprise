@@ -1,0 +1,60 @@
+================================================================================
+ TABLE: wa_numbers
+ Deskripsi : Nomor WhatsApp Business milik perusahaan, terhubung ke WA Official API
+================================================================================
+
+ COLUMNS
+ ─────────────────────────────────────────────────────────────────────────────
+ id                  UUIDv7              PK
+ company_id          UUIDv7              FK → companies.id
+ phone_number        string(20)          Nomor WA format internasional (+628xxx)
+ display_name        string(255)         Nama tampilan di WhatsApp Business
+ waba_id             string(100)         WhatsApp Business Account ID
+                                         (1 WABA bisa punya banyak phone number)
+ phone_number_id     string(100)         Phone Number ID — identifier unik nomor ini
+                                         di dalam WABA (dipakai di semua API call)
+ access_token        text encrypted      System User Access Token (disimpan terenkripsi)
+ webhook_verify_token string(255) null   Token verifikasi webhook (boleh per-nomor atau global)
+ quality_rating      enum null           green | yellow | red (dari Meta API)
+ messaging_limit     string(50) null     Tier limit (1K / 10K / 100K / unlimited pesan/hari)
+ status              enum                active | inactive | pending | error
+ connected_at        timestamp null      Kapan berhasil terhubung
+ last_error          text null           Pesan error terakhir jika ada
+ created_at          timestamp
+ updated_at          timestamp
+ deleted_at          timestamp null      Soft delete
+
+ INDEXES
+ ─────────────────────────────────────────────────────────────────────────────
+ • INDEX   company_id
+ • INDEX   waba_id
+ • INDEX   status
+ • UNIQUE  phone_number_id
+
+ RELATIONS
+ ─────────────────────────────────────────────────────────────────────────────
+ • belongsTo      companies             (wa_numbers.company_id → companies.id)
+ • hasMany        messages              (messages.wa_number_id → wa_numbers.id)
+ • hasMany        contacts              (contacts.wa_number_id → wa_numbers.id)
+ • belongsToMany  users                 (via wa_number_assignments.wa_number_id → wa_numbers.id)
+
+ NOTES
+ ─────────────────────────────────────────────────────────────────────────────
+ • PK menggunakan UUIDv7 — time-sortable, aman untuk distributed system
+
+ WA Official API Hierarchy:
+   Meta Business Portfolio
+     └─ WABA (waba_id)              ← 1 perusahaan bisa punya 1+ WABA
+           └─ Phone Number (phone_number_id)  ← 1 WABA bisa punya banyak nomor
+
+ • waba_id         — dipakai untuk manajemen akun (subscribe webhook, dll)
+ • phone_number_id — dipakai di SETIAP API call pengiriman pesan
+                      (endpoint: /v{version}/{phone_number_id}/messages)
+ • access_token    — System User Access Token, WAJIB terenkripsi di DB
+                      (jangan pakai User Access Token karena bisa expire)
+ • quality_rating  — diupdate dari webhook 'phone_number_quality_update'
+                      green = aman, yellow = warning, red = limit/banned
+ • messaging_limit — tier pengiriman per 24 jam (naik otomatis jika kualitas bagus)
+ • Satu perusahaan bisa punya banyak nomor WA (beda WABA atau beda phone di WABA sama)
+ • Status 'error' jika webhook atau token bermasalah
+================================================================================

@@ -1,0 +1,302 @@
+================================================================================
+ WANTERPRISE — WhatsApp SaaS Platform
+ Project Brief & Planning Document
+ Version    : 1.0
+ Created At : 2026-04-25
+================================================================================
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 1. OVERVIEW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Wanterprise adalah platform SaaS (Software as a Service) berbasis WhatsApp Official API
+yang memungkinkan perusahaan (tenant) untuk mengelola komunikasi WhatsApp secara
+terpusat, mulai dari pengiriman pesan, blast message, manajemen kontak, hingga
+pengelolaan tim dan penagihan berbasis pra-bayar.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 2. TECH STACK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ Backend
+ ─────────────────────────────────────────────────────────────────────────────
+ • Laravel             v13 (latest)
+ • Laravel Reverb      latest  — WebSocket / real-time communication
+ • Spatie Permissions  latest  — Role & Permission management
+
+ Frontend
+ ─────────────────────────────────────────────────────────────────────────────
+ • Vue.js              v3.5.x (latest)
+ • Inertia.js          latest  — SPA bridge (no full-page reload, client-side routing)
+ • Tailwind CSS        v4.2    (latest) — with `dark:` variant enabled
+ • Flowbite            latest  — UI component library (Tailwind-based)
+ • Font Awesome Free   v7.2.0  — Icon set
+
+ UX / UI Requirements
+ ─────────────────────────────────────────────────────────────────────────────
+ • SPA (Single Page Application)
+   → Semua navigasi tanpa full-page reload menggunakan Inertia.js + Vue Router
+   → State management dengan Pinia
+   → Transisi halaman (page transition animation)
+
+ • Light & Dark Mode
+   → Toggle manual (tombol di navbar/sidebar)
+   → Fallback ke system preference (prefers-color-scheme) saat pertama kali login
+   → Preferensi disimpan di localStorage (persisten antar sesi)
+   → Implementasi via Tailwind CSS `dark:` class + `class="dark"` pada <html>
+
+ • Responsive Design
+   → Mobile-first approach
+   → Breakpoint (Tailwind v4):
+        sm   40rem  (640px)   @media (width >= 40rem)
+        md   48rem  (768px)   @media (width >= 48rem)
+        lg   64rem  (1024px)  @media (width >= 64rem)
+        xl   80rem  (1280px)  @media (width >= 80rem)
+        2xl  96rem  (1536px)  @media (width >= 96rem)
+   → Sidebar collapsible di layar kecil (hamburger menu)
+   → Tabel & data grid menggunakan horizontal scroll di mobile
+   → Semua form & modal fully responsive
+
+ Infrastructure & Configuration
+ ─────────────────────────────────────────────────────────────────────────────
+ • Minimal usage of .env & config files
+ • Most configurations stored in a "configurations" database table
+   → editable at runtime via the web UI (no redeploy needed)
+ • Database: MySQL / PostgreSQL (TBD)
+ • WhatsApp Official API (Cloud API / BSP-based)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 3. ARCHITECTURE — MULTI-TENANCY & IAM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ User Types
+ ─────────────────────────────────────────────────────────────────────────────
+ 1. SaaS Operator    → Pengelola platform (bisa 1 orang atau tim internal)
+ 2. Company Operator → Tenant / pengguna bisnis (punya tim & role sendiri)
+
+ IAM (Identity & Access Management)
+ ─────────────────────────────────────────────────────────────────────────────
+ • Powered by Spatie Laravel Permission
+ • Enterprise-grade, highly flexible
+ • TIDAK ada hardcoded "super admin" yang otomatis bisa akses semua hal
+ • Semua akses — termasuk SaaS Operator — dikontrol via Role & Permission
+ • SaaS Operator juga punya role sendiri dan hanya bisa akses menu/halaman
+   sesuai permission yang dimilikinya
+ • Company Operator bisa buat role custom untuk timnya sendiri
+ • Permission bersifat GRANULAR per aksi terkecil (bukan per menu saja)
+
+ Permission Naming Convention
+ ─────────────────────────────────────────────────────────────────────────────
+ Format  : {resource}.{action}
+ Actions : list | detail | create | edit | delete
+
+ Contoh:
+   company.list      → boleh lihat daftar perusahaan
+   company.detail    → boleh lihat detail satu perusahaan
+   company.create    → boleh tambah perusahaan baru
+   company.edit      → boleh ubah data perusahaan
+   company.delete    → boleh hapus perusahaan
+
+ Permission Map — SaaS Operator Panel
+ ─────────────────────────────────────────────────────────────────────────────
+ Resource            Permissions
+ ──────────────────  ──────────────────────────────────────────────────────
+ company             company.list, company.detail, company.create,
+                     company.edit, company.delete
+ saas_user           saas_user.list, saas_user.detail, saas_user.create,
+                     saas_user.edit, saas_user.delete
+ saas_role           saas_role.list, saas_role.detail, saas_role.create,
+                     saas_role.edit, saas_role.delete
+ company_role        company_role.list, company_role.detail,
+                     company_role.create, company_role.edit,
+                     company_role.delete
+ billing             billing.list, billing.detail, billing.topup
+ configuration       configuration.list, configuration.edit
+
+ Permission Map — Company Operator Panel
+ ─────────────────────────────────────────────────────────────────────────────
+ Resource            Permissions
+ ──────────────────  ──────────────────────────────────────────────────────
+ company_user        company_user.list, company_user.detail,
+                     company_user.create, company_user.edit,
+                     company_user.delete
+ company_role        company_role.list, company_role.detail,
+                     company_role.create, company_role.edit,
+                     company_role.delete
+ wa_number           wa_number.list, wa_number.detail, wa_number.create,
+                     wa_number.edit, wa_number.delete
+ contact             contact.list, contact.list_all, contact.list_assigned,
+                     contact.detail, contact.create, contact.edit,
+                     contact.delete, contact.label
+ message             message.list, message.detail, message.send,
+                     message.send_all, message.send_assigned
+ blast               blast.list, blast.detail, blast.create,
+                     blast.edit, blast.delete, blast.send
+ billing             billing.list, billing.detail, billing.topup_request
+
+ Catatan Penting:
+ • contact.list_all      → bisa lihat SEMUA kontak perusahaan
+ • contact.list_assigned → hanya bisa lihat kontak yang di-assign ke dia
+ • message.send_all      → bisa kirim pesan ke semua kontak
+ • message.send_assigned → hanya bisa kirim ke kontak yang di-assign ke dia
+ • Jika user tidak punya permission, menu/halaman/tombol TIDAK ditampilkan
+
+ Separation of Concern
+ ─────────────────────────────────────────────────────────────────────────────
+ • SaaS Operator    → mengelola tenant, billing global, konfigurasi platform
+ • Company Operator → mengelola tim, nomor WA, pesan, billing perusahaan sendiri
+ • Scope permission SaaS & Company TERPISAH — tidak saling overlap
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 4. FEATURE LIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ ┌─────────────────────────────────────────────────────────────────────────┐
+ │ A. SaaS Operator Panel                                                  │
+ └─────────────────────────────────────────────────────────────────────────┘
+
+  [Dashboard]
+  • Total perusahaan terdaftar
+  • Total pengguna di seluruh tenant
+  • Total nomor WA aktif
+  • Ringkasan penggunaan & pendapatan
+
+  [Manajemen Perusahaan (Tenant)]
+  • CRUD perusahaan
+  • Aktifasi / Suspensi tenant
+  • Lihat detail penggunaan per perusahaan
+
+  [Manajemen Pengguna SaaS]
+  • CRUD operator SaaS
+  • Manajemen role & permission operator SaaS
+
+  [Manajemen Role Perusahaan]
+  • CRUD role yang tersedia untuk digunakan perusahaan
+  • Definisi permission set per role
+
+  [Billing & Tagihan]
+  • Model pra-bayar (prepaid)
+  • Top-up saldo per perusahaan
+  • Monitor penggunaan & history transaksi
+  • Alert saldo menipis
+
+  [Konfigurasi Sistem]
+  • Tabel "configurations" — edit tanpa redeploy
+  • Pengaturan API WhatsApp (Webhook URL, App Secret, dll)
+
+ ┌─────────────────────────────────────────────────────────────────────────┐
+ │ B. Company Operator Panel                                               │
+ └─────────────────────────────────────────────────────────────────────────┘
+
+  [Dashboard]
+  • Jumlah pengguna aktif dalam perusahaan
+  • Jumlah nomor WA aktif
+  • Ringkasan saldo & penggunaan bulan ini
+  • Statistik pesan terkirim / diterima
+
+  [Manajemen Pengguna]
+  • CRUD pengguna dalam perusahaan
+  • Assign role ke pengguna
+  • Aktifasi / Nonaktifasi pengguna
+
+  [Manajemen Nomor WA]
+  • CRUD nomor WA (WhatsApp Business Number)
+  • Assign nomor ke pengguna / tim
+  • Status koneksi nomor (connected / disconnected)
+
+  [Manajemen Role & Permission]
+  • CRUD role perusahaan (custom roles)
+  • Permission granular:
+    → bisa lihat semua kontak / hanya yang di-assign
+    → bisa kirim pesan / read-only
+    → akses blast message / tidak
+
+  [WhatsApp Messaging]
+  • Inbox pesan masuk & keluar (per nomor WA)
+  • Real-time chat menggunakan Laravel Reverb (WebSocket)
+  • Label / tagging pada kontak
+  • Assign kontak ke pengguna tertentu
+  • Filter & search kontak
+
+  [Blast Message]
+  • Kirim pesan massal ke banyak kontak sekaligus
+  • Template pesan (static & dynamic variable)
+  • Penjadwalan blast message
+  • Laporan pengiriman (delivered / read / failed)
+
+  [Tagihan & Saldo]
+  • Lihat saldo saat ini
+  • History transaksi & penggunaan
+  • Request top-up saldo
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 5. DATABASE — KEY TABLES (HIGH LEVEL)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ • companies           → Data tenant / perusahaan
+ • users               → Semua user (SaaS & Company), dengan company_id
+ • wa_numbers          → Nomor WA per perusahaan
+ • contacts            → Kontak WA per perusahaan + labeling
+ • contact_labels      → Label / tag untuk kontak
+ • messages            → Riwayat pesan masuk & keluar
+ • blast_campaigns     → Kampanye blast message
+ • blast_recipients    → Target & status per penerima blast
+ • billing_wallets     → Saldo per perusahaan
+ • billing_transactions→ History top-up & pemakaian
+ • configurations      → Konfigurasi sistem (key-value, editable via UI)
+ • roles               → (via Spatie) Role management
+ • permissions         → (via Spatie) Permission management
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 6. DEVELOPMENT PHASES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ Phase 1 — Foundation
+ ─────────────────────────────────────────────────────────────────────────────
+ □ Setup Laravel + Vue + Inertia + Tailwind + Flowbite
+ □ Authentication (Login, Logout, Session)
+ □ Multi-tenancy structure (companies, users)
+ □ Spatie Permission integration
+ □ Configurations table + service layer
+ □ SaaS Operator: CRUD Perusahaan
+ □ SaaS Operator: CRUD User & Role
+
+ Phase 2 — Core WhatsApp Features
+ ─────────────────────────────────────────────────────────────────────────────
+ □ Integrasi WhatsApp Official API (Webhook receiver)
+ □ CRUD Nomor WA
+ □ Inbox real-time (Laravel Reverb + Vue)
+ □ Manajemen Kontak + Label
+ □ Kirim & terima pesan
+
+ Phase 3 — Advanced Features
+ ─────────────────────────────────────────────────────────────────────────────
+ □ Blast Message (template, jadwal, laporan)
+ □ Permission granular (assign kontak, send/read only)
+ □ Dashboard statistik (SaaS & Company)
+ □ Billing & Saldo (prepaid, top-up, history)
+
+ Phase 4 — Polish & Production Ready
+ ─────────────────────────────────────────────────────────────────────────────
+ □ Notifikasi saldo menipis
+ □ Audit log aktivitas pengguna
+ □ API rate limiting & throttling
+ □ Unit & Feature testing
+ □ Deployment (CI/CD, server setup)
+ □ Dokumentasi API & User Guide
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 7. NON-FUNCTIONAL REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ • Security      : CSRF protection, input validation, role-based access on all routes
+ • Performance   : Queue-based blast message (Laravel Queue), WebSocket untuk inbox
+ • Scalability   : Desain database mendukung multi-tenant
+ • DX            : Konfigurasi disimpan di DB agar tidak perlu redeploy untuk update setting
+ • Maintainability: Minimal .env — semua dynamic config via "configurations" table
+ • SPA           : Navigasi instan tanpa reload, hanya data yang di-fetch via Inertia request
+ • Dark Mode     : Semua komponen UI wajib mendukung dark: variant, tidak ada hardcoded warna
+ • Responsive    : Semua halaman wajib berfungsi baik di resolusi 360px s/d 1920px+
+ • Accessibility : Kontras warna memenuhi WCAG AA di kedua mode (light & dark)
+
+================================================================================

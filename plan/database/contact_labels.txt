@@ -1,0 +1,39 @@
+================================================================================
+ TABLE: contact_labels
+ Deskripsi : Label / tag yang bisa di-assign ke kontak untuk kategorisasi
+================================================================================
+
+ COLUMNS
+ ─────────────────────────────────────────────────────────────────────────────
+ id                  UUIDv7              PK
+ company_id          UUIDv7              FK → companies.id
+ name                string(100)         Nama label (contoh: "VIP", "Leads", "CS")
+ color               string(7)           Hex color (contoh: #FF5733)
+ created_at          timestamp
+ updated_at          timestamp
+
+ PIVOT TABLE: contact_label_pivot
+ ─────────────────────────────────────────────────────────────────────────────
+ contact_id          UUIDv7              FK → contacts.id
+ label_id            UUIDv7              FK → contact_labels.id
+ assigned_at         timestamp           Waktu label di-assign
+ assigned_by         UUIDv7              FK → users.id
+
+ INDEXES
+ ─────────────────────────────────────────────────────────────────────────────
+ • INDEX   company_id
+ • UNIQUE  company_id + name
+ • UNIQUE (pivot) contact_id + label_id
+
+ RELATIONS
+ ─────────────────────────────────────────────────────────────────────────────
+ • belongsTo      companies             (contact_labels.company_id → companies.id)
+ • belongsToMany  contacts              (via contact_label_pivot.label_id → contact_labels.id)
+
+ NOTES
+ ─────────────────────────────────────────────────────────────────────────────
+ • PK menggunakan UUIDv7 — time-sortable, aman untuk distributed system
+ • Label bersifat per-perusahaan, tidak bisa lintas tenant
+ • Satu kontak bisa punya banyak label
+ • Permission yang dibutuhkan: contact.label
+================================================================================

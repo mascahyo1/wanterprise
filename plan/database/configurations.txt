@@ -1,0 +1,44 @@
+================================================================================
+ TABLE: configurations
+ Deskripsi : Konfigurasi sistem yang bisa diubah dari UI tanpa redeploy
+================================================================================
+
+ COLUMNS
+ ─────────────────────────────────────────────────────────────────────────────
+ id                  UUIDv7              PK
+ group               string(100)         Grup konfigurasi (contoh: whatsapp, billing, app)
+ key                 string(255)         Nama konfigurasi (unique per group)
+ value               text null           Nilai konfigurasi
+ type                enum                string | integer | boolean | json | secret
+ label               string(255)         Label human-readable untuk UI
+ description         text null           Keterangan fungsi konfigurasi ini
+ is_public           boolean             Default: false (false = hanya tampil di admin)
+ created_at          timestamp
+ updated_at          timestamp
+
+ INDEXES
+ ─────────────────────────────────────────────────────────────────────────────
+ • UNIQUE  group + key
+ • INDEX   group
+ • INDEX   is_public
+
+ EXAMPLES (Seed Data)
+ ─────────────────────────────────────────────────────────────────────────────
+ group         key                        type     label
+ ──────────    ─────────────────────────  ───────  ──────────────────────────
+ whatsapp      meta_app_id               string   Meta App ID
+ whatsapp      meta_app_secret           secret   Meta App Secret
+ whatsapp      webhook_verify_token      secret   Webhook Verify Token
+ billing       message_cost_per_unit     integer  Biaya per pesan (IDR)
+ billing       low_balance_default       integer  Default threshold saldo rendah
+ app           app_name                  string   Nama Aplikasi
+ app           app_logo                  string   Path Logo Aplikasi
+ app           maintenance_mode          boolean  Mode Maintenance
+
+ NOTES
+ ─────────────────────────────────────────────────────────────────────────────
+ • type 'secret' → value disimpan terenkripsi, tidak ditampilkan di UI (masked)
+ • Diakses via ConfigurationService::get('whatsapp.meta_app_id')
+ • Di-cache per request / per session untuk performa
+ • Permission: configuration.list, configuration.edit
+================================================================================

@@ -1,0 +1,49 @@
+================================================================================
+ TABLE: blast_campaigns
+ Deskripsi : Kampanye blast message — pengiriman pesan massal ke banyak kontak
+================================================================================
+
+ COLUMNS
+ ─────────────────────────────────────────────────────────────────────────────
+ id                  UUIDv7              PK
+ company_id          UUIDv7              FK → companies.id
+ wa_number_id        UUIDv7              FK → wa_numbers.id
+ created_by          UUIDv7              FK → users.id
+ name                string(255)         Nama kampanye
+ message_type        enum                text | template
+ message_body        text                Isi pesan (atau nama template)
+ template_params     json null           Variable untuk template message
+ status              enum                draft | scheduled | running | done | failed
+ scheduled_at        timestamp null      Waktu jadwal kirim (null = langsung)
+ started_at          timestamp null      Waktu mulai dikirim
+ completed_at        timestamp null      Waktu selesai
+ total_recipients    int unsigned        Total penerima
+ total_sent          int unsigned        Default: 0
+ total_delivered     int unsigned        Default: 0
+ total_read          int unsigned        Default: 0
+ total_failed        int unsigned        Default: 0
+ created_at          timestamp
+ updated_at          timestamp
+
+ INDEXES
+ ─────────────────────────────────────────────────────────────────────────────
+ • INDEX   company_id
+ • INDEX   wa_number_id
+ • INDEX   status
+ • INDEX   scheduled_at
+
+ RELATIONS
+ ─────────────────────────────────────────────────────────────────────────────
+ • belongsTo  companies             (blast_campaigns.company_id → companies.id)
+ • belongsTo  wa_numbers            (blast_campaigns.wa_number_id → wa_numbers.id)
+ • belongsTo  users                 (blast_campaigns.created_by → users.id)
+ • hasMany    blast_recipients      (blast_recipients.blast_campaign_id → blast_campaigns.id)
+ • hasMany    messages              (messages.blast_campaign_id → blast_campaigns.id)
+
+ NOTES
+ ─────────────────────────────────────────────────────────────────────────────
+ • PK menggunakan UUIDv7 — time-sortable, aman untuk distributed system
+ • Pengiriman diproses via Laravel Queue (background job), bukan sinkron
+ • total_sent / delivered / read / failed diupdate secara realtime via webhook
+ • Permission: blast.create, blast.send
+================================================================================

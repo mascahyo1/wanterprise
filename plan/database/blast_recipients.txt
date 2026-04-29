@@ -1,0 +1,39 @@
+================================================================================
+ TABLE: blast_recipients
+ Deskripsi : Daftar penerima per kampanye blast, beserta status pengiriman individual
+================================================================================
+
+ COLUMNS
+ ─────────────────────────────────────────────────────────────────────────────
+ id                  UUIDv7              PK
+ blast_campaign_id   UUIDv7              FK → blast_campaigns.id
+ contact_id          UUIDv7              FK → contacts.id
+ message_id          UUIDv7 null         FK → messages.id (diisi setelah pesan terkirim)
+ status              enum                pending | sent | delivered | read | failed
+ failed_reason       text null           Alasan gagal jika status = failed
+ sent_at             timestamp null
+ delivered_at        timestamp null
+ read_at             timestamp null
+ created_at          timestamp
+ updated_at          timestamp
+
+ INDEXES
+ ─────────────────────────────────────────────────────────────────────────────
+ • INDEX   blast_campaign_id
+ • INDEX   contact_id
+ • INDEX   status
+ • UNIQUE  blast_campaign_id + contact_id
+
+ RELATIONS
+ ─────────────────────────────────────────────────────────────────────────────
+ • belongsTo  blast_campaigns       (blast_recipients.blast_campaign_id → blast_campaigns.id)
+ • belongsTo  contacts              (blast_recipients.contact_id → contacts.id)
+ • belongsTo  messages              (blast_recipients.message_id → messages.id, nullable)
+
+ NOTES
+ ─────────────────────────────────────────────────────────────────────────────
+ • PK menggunakan UUIDv7 — time-sortable, aman untuk distributed system
+ • Satu baris = satu kontak dalam satu kampanye
+ • Status diupdate berdasarkan webhook dari WhatsApp API
+ • Digunakan untuk laporan per-penerima di detail kampanye
+================================================================================

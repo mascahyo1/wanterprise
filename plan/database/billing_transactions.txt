@@ -1,0 +1,43 @@
+================================================================================
+ TABLE: billing_transactions
+ Deskripsi : Riwayat semua transaksi saldo — top-up & pemakaian per perusahaan
+================================================================================
+
+ COLUMNS
+ ─────────────────────────────────────────────────────────────────────────────
+ id                  UUIDv7              PK
+ company_id          UUIDv7              FK → companies.id
+ wallet_id           UUIDv7              FK → billing_wallets.id
+ type                enum                topup | usage | adjustment | refund
+ amount              decimal(15,2)       Nominal (positif = masuk, negatif = keluar)
+ balance_before      decimal(15,2)       Saldo sebelum transaksi
+ balance_after       decimal(15,2)       Saldo setelah transaksi
+ description         string(255)         Keterangan transaksi
+ reference_id        string(255) null    ID referensi eksternal (payment gateway, dll)
+ reference_type      string(100) null    Tipe referensi (contoh: blast_campaign, message)
+ processed_by        UUIDv7 null         FK → users.id (siapa yang proses top-up)
+ created_at          timestamp
+ updated_at          timestamp
+
+ INDEXES
+ ─────────────────────────────────────────────────────────────────────────────
+ • INDEX   company_id
+ • INDEX   wallet_id
+ • INDEX   type
+ • INDEX   created_at
+ • INDEX   reference_id
+
+ RELATIONS
+ ─────────────────────────────────────────────────────────────────────────────
+ • belongsTo  companies             (billing_transactions.company_id → companies.id)
+ • belongsTo  billing_wallets       (billing_transactions.wallet_id → billing_wallets.id)
+ • belongsTo  users                 (billing_transactions.processed_by → users.id, nullable)
+
+ NOTES
+ ─────────────────────────────────────────────────────────────────────────────
+ • PK menggunakan UUIDv7 — time-sortable, aman untuk distributed system
+ • TIDAK BOLEH ada perubahan saldo tanpa insert ke tabel ini (immutable log)
+ • balance_before & balance_after disimpan untuk auditing
+ • type 'usage' dibuat otomatis setiap kali ada pengiriman pesan (debit)
+ • type 'topup' dibuat oleh SaaS Operator saat mengisi saldo perusahaan
+================================================================================

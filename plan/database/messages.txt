@@ -1,0 +1,56 @@
+================================================================================
+ TABLE: messages
+ Deskripsi : Riwayat semua pesan masuk & keluar per nomor WA
+================================================================================
+
+ COLUMNS
+ ─────────────────────────────────────────────────────────────────────────────
+ id                  UUIDv7              PK
+ company_id          UUIDv7              FK → companies.id
+ wa_number_id        UUIDv7              FK → wa_numbers.id
+ contact_id          UUIDv7              FK → contacts.id
+ wa_message_id       string(255) null    Message ID dari WhatsApp API (unique)
+ direction           enum                inbound | outbound
+ type                enum                text | image | video | audio | document
+                                         | location | template | interactive
+ body                text null           Isi pesan teks
+ media_url           string(255) null    URL media (untuk type selain text)
+ media_mime_type     string(100) null    MIME type file media
+ caption             text null           Caption untuk media
+ status              enum                sent | delivered | read | failed | pending
+ sent_by             UUIDv7 null         FK → users.id (null jika inbound / blast)
+ sent_at             timestamp null      Waktu dikirim
+ delivered_at        timestamp null      Waktu delivered (dari webhook)
+ read_at             timestamp null      Waktu read (dari webhook)
+ failed_reason       text null           Alasan gagal jika status = failed
+ blast_campaign_id   UUIDv7 null         FK → blast_campaigns.id (null jika bukan blast)
+ created_at          timestamp
+ updated_at          timestamp
+
+ INDEXES
+ ─────────────────────────────────────────────────────────────────────────────
+ • INDEX   company_id
+ • INDEX   wa_number_id
+ • INDEX   contact_id
+ • UNIQUE  wa_message_id
+ • INDEX   direction
+ • INDEX   status
+ • INDEX   blast_campaign_id
+ • INDEX   sent_at
+
+ RELATIONS
+ ─────────────────────────────────────────────────────────────────────────────
+ • belongsTo  companies             (messages.company_id → companies.id)
+ • belongsTo  wa_numbers            (messages.wa_number_id → wa_numbers.id)
+ • belongsTo  contacts              (messages.contact_id → contacts.id)
+ • belongsTo  users                 (messages.sent_by → users.id, nullable)
+ • belongsTo  blast_campaigns       (messages.blast_campaign_id → blast_campaigns.id, nullable)
+
+ NOTES
+ ─────────────────────────────────────────────────────────────────────────────
+ • PK menggunakan UUIDv7 — time-sortable, aman untuk distributed system
+ • Status update (delivered, read) diterima via webhook dari WhatsApp
+ • Pesan blast tetap dicatat di sini dengan blast_campaign_id diisi
+ • Permission message.send_all      → bisa kirim ke semua kontak
+ • Permission message.send_assigned → hanya bisa kirim ke kontak yang di-assign ke user
+================================================================================

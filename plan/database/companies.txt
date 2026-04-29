@@ -1,0 +1,43 @@
+================================================================================
+ TABLE: companies
+ Deskripsi : Data tenant / perusahaan yang terdaftar di platform Wanterprise
+================================================================================
+
+ COLUMNS
+ ─────────────────────────────────────────────────────────────────────────────
+ id                  UUIDv7              PK
+ name                string(255)         Nama perusahaan
+ slug                string(100)         Unique identifier untuk URL (unique)
+ email               string(255)         Email utama perusahaan (unique)
+ phone               string(20)          Nomor telepon perusahaan
+ address             text                Alamat lengkap
+ logo                string(255) null    Path logo perusahaan
+ status              enum                active | suspended | inactive
+ suspended_at        timestamp null      Kapan di-suspend
+ suspended_reason    text null           Alasan suspensi
+ created_at          timestamp
+ updated_at          timestamp
+ deleted_at          timestamp null      Soft delete
+
+ INDEXES
+ ─────────────────────────────────────────────────────────────────────────────
+ • UNIQUE  slug
+ • UNIQUE  email
+ • INDEX   status
+
+ RELATIONS
+ ─────────────────────────────────────────────────────────────────────────────
+ • hasMany  users              (users.company_id → companies.id)
+ • hasMany  wa_numbers         (wa_numbers.company_id → companies.id)
+ • hasOne   billing_wallet     (billing_wallets.company_id → companies.id)
+ • hasMany  billing_transactions (billing_transactions.company_id → companies.id)
+ • hasMany  contacts           (contacts.company_id → companies.id)
+ • hasMany  blast_campaigns    (blast_campaigns.company_id → companies.id)
+
+ NOTES
+ ─────────────────────────────────────────────────────────────────────────────
+ • PK menggunakan UUIDv7 — time-sortable, aman untuk distributed system
+ • Setiap user (kecuali SaaS Operator) pasti punya company_id
+ • SaaS Operator: company_id = null
+ • Soft delete agar history billing tetap terjaga meski perusahaan dihapus
+================================================================================

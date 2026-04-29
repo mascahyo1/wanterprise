@@ -1,0 +1,41 @@
+================================================================================
+ TABLE: users
+ Deskripsi : Semua pengguna sistem — SaaS Operator & Company Operator/tim
+================================================================================
+
+ COLUMNS
+ ─────────────────────────────────────────────────────────────────────────────
+ id                  UUIDv7              PK
+ company_id          UUIDv7 null         FK → companies.id (null = SaaS Operator)
+ name                string(255)         Nama lengkap
+ email               string(255)         Email login (unique)
+ password            string(255)         Bcrypt hashed
+ avatar              string(255) null    Path avatar/foto profil
+ is_active           boolean             Default: true
+ last_login_at       timestamp null      Waktu login terakhir
+ created_at          timestamp
+ updated_at          timestamp
+ deleted_at          timestamp null      Soft delete
+
+ INDEXES
+ ─────────────────────────────────────────────────────────────────────────────
+ • UNIQUE  email
+ • INDEX   company_id
+ • INDEX   is_active
+
+ RELATIONS
+ ─────────────────────────────────────────────────────────────────────────────
+ • belongsTo      companies              (users.company_id → companies.id, nullable)
+ • morphMany      (Spatie) roles
+ • morphMany      (Spatie) permissions
+ • hasMany        messages               (messages.sent_by → users.id)
+ • belongsToMany  contacts              (via contact_assignments.user_id → users.id)
+ • belongsToMany  wa_numbers            (via wa_number_assignments.user_id → users.id)
+
+ NOTES
+ ─────────────────────────────────────────────────────────────────────────────
+ • PK menggunakan UUIDv7 — time-sortable, aman untuk distributed system
+ • company_id null = SaaS Operator
+ • company_id filled = Company Operator / Company Team Member
+ • Soft delete agar history pesan & aktivitas tetap terjaga
+================================================================================

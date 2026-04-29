@@ -1,0 +1,59 @@
+================================================================================
+ TABLE: contact_assignments
+ Deskripsi : Pivot — kontak yang di-assign ke pengguna tertentu (agen)
+================================================================================
+
+ COLUMNS (Pivot Table)
+ ─────────────────────────────────────────────────────────────────────────────
+ id                  UUIDv7              PK
+ contact_id          UUIDv7              FK → contacts.id
+ user_id             UUIDv7              FK → users.id
+ assigned_by         UUIDv7              FK → users.id (siapa yang assign)
+ assigned_at         timestamp           Waktu di-assign
+ notes               text null           Catatan assignment
+
+ INDEXES
+ ─────────────────────────────────────────────────────────────────────────────
+ • UNIQUE  contact_id + user_id
+ • INDEX   user_id
+ • INDEX   contact_id
+
+ RELATIONS
+ ─────────────────────────────────────────────────────────────────────────────
+ • belongsTo  contacts              (contact_assignments.contact_id → contacts.id)
+ • belongsTo  users [user_id]       (contact_assignments.user_id → users.id)
+ • belongsTo  users [assigned_by]   (contact_assignments.assigned_by → users.id)
+
+ NOTES
+ ─────────────────────────────────────────────────────────────────────────────
+ • PK menggunakan UUIDv7 — time-sortable, aman untuk distributed system
+ • Digunakan untuk fitur permission contact.list_assigned & message.send_assigned
+ • User dengan permission contact.list_assigned hanya bisa lihat kontak
+   yang ada di tabel ini dengan user_id = user mereka
+ • Satu kontak bisa di-assign ke lebih dari satu agen
+================================================================================
+
+
+================================================================================
+ TABLE: wa_number_assignments
+ Deskripsi : Pivot — nomor WA yang bisa diakses oleh user tertentu
+================================================================================
+
+ COLUMNS (Pivot Table)
+ ─────────────────────────────────────────────────────────────────────────────
+ id                  UUIDv7              PK
+ wa_number_id        UUIDv7              FK → wa_numbers.id
+ user_id             UUIDv7              FK → users.id
+ assigned_by         UUIDv7              FK → users.id
+ assigned_at         timestamp
+
+ INDEXES
+ ─────────────────────────────────────────────────────────────────────────────
+ • UNIQUE  wa_number_id + user_id
+ • INDEX   user_id
+
+ NOTES
+ ─────────────────────────────────────────────────────────────────────────────
+ • Opsional: jika bisnis ingin membatasi agen hanya bisa lihat inbox
+   nomor WA tertentu saja
+================================================================================

@@ -1,0 +1,43 @@
+================================================================================
+ TABLE: contacts
+ Deskripsi : Kontak WhatsApp milik perusahaan (bisa di-assign ke pengguna tertentu)
+================================================================================
+
+ COLUMNS
+ ─────────────────────────────────────────────────────────────────────────────
+ id                  UUIDv7              PK
+ company_id          UUIDv7              FK → companies.id
+ wa_number_id        UUIDv7              FK → wa_numbers.id (nomor yang dipakai chat)
+ wa_id               string(50)          WhatsApp ID kontak (format: 628xxx@s.whatsapp.net)
+ phone_number        string(20)          Nomor telepon kontak
+ name                string(255) null    Nama kontak (dari profil WA atau input manual)
+ avatar_url          string(255) null    URL foto profil
+ notes               text null           Catatan internal tentang kontak ini
+ is_blocked          boolean             Default: false
+ last_message_at     timestamp null      Waktu pesan terakhir
+ created_at          timestamp
+ updated_at          timestamp
+ deleted_at          timestamp null      Soft delete
+
+ INDEXES
+ ─────────────────────────────────────────────────────────────────────────────
+ • INDEX   company_id
+ • INDEX   wa_number_id
+ • UNIQUE  company_id + wa_id   (kontak unik per perusahaan)
+ • INDEX   last_message_at
+
+ RELATIONS
+ ─────────────────────────────────────────────────────────────────────────────
+ • belongsTo      companies             (contacts.company_id → companies.id)
+ • belongsTo      wa_numbers            (contacts.wa_number_id → wa_numbers.id)
+ • hasMany        messages              (messages.contact_id → contacts.id)
+ • belongsToMany  contact_labels        (via contact_label_pivot.contact_id → contacts.id)
+ • belongsToMany  users                 (via contact_assignments.contact_id → contacts.id)
+
+ NOTES
+ ─────────────────────────────────────────────────────────────────────────────
+ • PK menggunakan UUIDv7 — time-sortable, aman untuk distributed system
+ • Kontak bisa di-assign ke satu atau beberapa user (agen)
+ • Permission contact.list_all      → lihat semua kontak perusahaan
+ • Permission contact.list_assigned → hanya lihat kontak yang di-assign ke user ini
+================================================================================
