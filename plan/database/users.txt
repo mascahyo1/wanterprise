@@ -12,7 +12,6 @@
  avatar              string(255) null    Path avatar/foto profil
  theme_preference    enum                light | dark | system (default: system)
  is_active           boolean             Default: true
- is_super_admin      boolean             Default: false (Hanya true untuk pengelola aplikasi SaaS)
  current_company_id  UUIDv7 null         FK → companies.id (Menyimpan workspace yang sedang aktif dibuka)
  last_login_at       timestamp null      Waktu login terakhir
  created_at          timestamp
@@ -23,7 +22,6 @@
  ─────────────────────────────────────────────────────────────────────────────
  • UNIQUE  email
  • INDEX   is_active
- • INDEX   is_super_admin
  • INDEX   current_company_id
 
  27. RELATIONS
@@ -41,6 +39,6 @@
  • PK menggunakan UUIDv7 — time-sortable, aman untuk distributed system
  • User bisa terikat pada banyak perusahaan (Many-to-Many via tabel `company_user`).
  • `current_company_id` digunakan murni untuk alasan UX (agar saat login ulang, langsung masuk ke workspace terakhir).
- • `is_super_admin` membedakan antara pengguna biasa dan SaaS Operator.
+ • Pembedaan pengguna biasa dan SaaS Operator MURNI menggunakan Spatie Roles (tidak ada hardcode kolom).
  • Soft delete agar history pesan & aktivitas tetap terjaga
 ================================================================================
