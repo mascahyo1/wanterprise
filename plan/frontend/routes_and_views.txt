@@ -1,0 +1,53 @@
+================================================================================
+ FRONTEND: Routes & Views (Vue.js + Inertia)
+ Deskripsi : Pemetaan struktur halaman SPA
+================================================================================
+
+ 1. LAYOUTS
+ ─────────────────────────────────────────────────────────────────────────────
+ - GuestLayout.vue         : Untuk halaman Login, Register, Forgot Password.
+ - AuthenticatedLayout.vue : Memiliki Sidebar, Top Navbar, dan Main Content Area. Mengandung logic listener WebSocket (Reverb) global.
+
+ 2. PETA ROUTE & VIEWS
+ ─────────────────────────────────────────────────────────────────────────────
+ [Auth]
+ GET  /login                   -> Auth/Login.vue
+ GET  /register                -> Auth/Register.vue
+
+ [Dashboard]
+ GET  /dashboard               -> Dashboard/Index.vue
+      (Menampilkan statistik pesan harian, sisa saldo, status koneksi WA)
+
+ [Inbox & Chatting]
+ GET  /inbox                   -> Inbox/Index.vue
+      (Tampilan Split Pane: Kiri daftar chat/kontak, Kanan ruang obrolan)
+      - Components: ChatList.vue, ChatBubble.vue, MessageInput.vue, ContactInfoSidebar.vue
+
+ [Contacts Management]
+ GET  /contacts                -> Contacts/Index.vue (Data Table)
+ GET  /contacts/{id}           -> Contacts/Show.vue  (Detail & Riwayat Kontak)
+ GET  /contact-labels          -> Contacts/Labels.vue
+
+ [Blast Campaigns]
+ GET  /campaigns               -> Campaigns/Index.vue (Daftar Campaign)
+ GET  /campaigns/create        -> Campaigns/Create.vue (Form Builder: Pilih template, upload excel/pilih label)
+ GET  /campaigns/{id}          -> Campaigns/Show.vue (Realtime progress bar pengiriman)
+
+ [Company Settings]
+ GET  /settings/wa-numbers     -> Settings/WaNumbers.vue (Menyambungkan nomor WA, webhook token)
+ GET  /settings/users          -> Settings/Users.vue (Manajemen tim & assignment)
+ GET  /settings/roles          -> Settings/Roles.vue (Manajemen Spatie Permissions)
+
+ [Billing]
+ GET  /billing                 -> Billing/Index.vue (Tampilan dompet, riwayat transaksi, tombol Top Up)
+
+ [SaaS Admin Panel] - (Hanya Super Admin)
+ GET  /admin/companies         -> Admin/Companies.vue
+ GET  /admin/users             -> Admin/Users.vue
+
+ 3. STATE MANAGEMENT (PINIA)
+ ─────────────────────────────────────────────────────────────────────────────
+ Digunakan untuk data yang sering berubah dan harus diakses lintas komponen:
+ - `useChatStore` : Menyimpan state obrolan aktif, unread count, pesan yang sedang diketik.
+ - `useThemeStore`: Menyimpan preferensi light/dark mode dan logic sinkronisasi dengan localStorage & OS default.
+ - `useAuthStore` : Menyimpan data user login, role, dan permission-nya (meski Inertia Shared Data juga bisa, Pinia lebih reaktif).

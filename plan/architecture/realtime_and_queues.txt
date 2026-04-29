@@ -1,0 +1,62 @@
+================================================================================
+ ARCHITECTURE: Real-time & Queue Workers
+ Deskripsi : Struktur WebSocket (Laravel Reverb) & Background Jobs
+================================================================================
+
+ 1. REAL-TIME EVENTS (LARAVEL REVERB)
+ ─────────────────────────────────────────────────────────────────────────────
+ Karena ini SPA, pembaruan data harus instan tanpa reload. Kita gunakan Private Channels.
+
+ A. Channels
+    - `private-company.{company_id}.inbox`
+      > Channel utama untuk notifikasi global di dalam satu perusahaan.
+      > Semua user di perusahaan ini subscribe ke sini.
+
+    - `private-user.{user_id}`
+      > Channel khusus untuk notifikasi yang ditujukan hanya untuk satu user (misal: "Anda mendapat assignment kontak baru").
+
+ B. Events
+    - `MessageReceived`
+      > Trigger  : Saat webhook pesan masuk.
+      > Payload  : Data pesan, contact_id, wa_number_id.
+      > Frontend : Update state Pinia (menambah balon chat baru jika sedang membuka obrolan tersebut, atau menambah badge unread jika di luar obrolan).
+    
+    - `MessageStatusUpdated`
+      > Trigger  : Saat webhook mengubah status pesan (sent/delivered/read).
+      > Payload  : message_id, status.
+      > Frontend : Mengubah icon centang satu (sent), centang dua (delivered), atau biru (read).
+
+    - `ContactAssigned`
+      > Trigger  : Saat admin meng-assign kontak ke operator.
+      > Payload  : contact_data, assigned_by.
+      > Frontend : Memunculkan toast notification di layar operator.
+
+ 2. BACKGROUND JOBS & QUEUE WORKERS
+ ─────────────────────────────────────────────────────────────────────────────
+ Fitur yang memakan waktu (blocking) tidak boleh dieksekusi secara sinkron di HTTP request.
+
+ A. Queue Names
+    - `high`    : Prioritas tinggi (Webhook processing, OTP).
+    - `default` : Standar (Generate report harian).
+    - `blast`   : Khusus untuk campaign blast pesan massal.
+
+ B. Job Classes
+    - `ProcessMetaWebhookJob` (Queue: high)
+      > Mengurai JSON dari Meta, insert ke DB, dan menembak Event Reverb.
+
+    - `SendWhatsAppMessageJob` (Queue: default/high)
+      > Melakukan Guzzle/HTTP request ke endpoint Meta API untuk mengirim pesan tunggal.
+      > Jika gagal karena Rate Limit, job ini akan dirilis ulang (Release / Retry) setelah X detik.
+
+    - `ExecuteBlastCampaignJob` (Queue: default)
+      > Di-trigger saat admin klik "Start Campaign".
+      > Job ini membaca tabel `blast_recipients`, memotong data (chunk), lalu melahirkan ratusan `DispatchBlastMessageJob`.
+
+    - `DispatchBlastMessageJob` (Queue: blast)
+      > Mengirim pesan ke satu spesifik recipient dari campaign.
+      > Diatur rate limiting-nya (menggunakan Laravel Redis Throttle) agar maksimal 50-80 pesan per detik (sesuai limit WA Business agar tidak dibanned).
+
+ 3. SUPERVISOR CONFIGURATION
+ ─────────────────────────────────────────────────────────────────────────────
+ Di server produksi, kita akan menjalankan Laravel Horizon atau Supervisor untuk me-manage worker:
+ - php artisan queue:work --queue=high,default,blast --timeout=90 --tries=3

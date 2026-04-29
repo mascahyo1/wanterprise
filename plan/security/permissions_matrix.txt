@@ -1,0 +1,62 @@
+================================================================================
+ SECURITY: Role & Permissions Matrix (Spatie)
+ Deskripsi : Struktur Role-Based Access Control (RBAC) pada Wanterprise
+================================================================================
+
+ 1. HIERARKI ROLES
+ ─────────────────────────────────────────────────────────────────────────────
+ [SaaS Level]
+ - Super Admin     : Mengelola seluruh platform SaaS (Company, Konfigurasi Global, dll)
+ 
+ [Company Level]
+ - Company Admin   : Owner/Manager di sebuah perusahaan (Akses penuh fitur perusahaannya)
+ - Supervisor      : Mengawasi Operator, bisa melihat semua inbox dan report
+ - Operator        : CS/Agen balasan chat. Hanya bisa membalas dan melihat kontak yang diassign kepadanya.
+
+ 2. FORMAT PENAMAAN PERMISSION
+ ─────────────────────────────────────────────────────────────────────────────
+ Format standar : {resource}.{action}
+ Contoh         : messages.send, contacts.create
+
+ 3. MATRIKS PERMISSIONS BERDASARKAN ROLE
+ ─────────────────────────────────────────────────────────────────────────────
+
+ A. MANAJEMEN APLIKASI (Hanya Super Admin)
+    - companies.view, companies.create, companies.edit, companies.delete
+    - saas_users.view, saas_users.create, saas_users.edit, saas_users.delete
+    - global_settings.manage
+
+ B. MANAJEMEN WA NUMBERS & BILLING (Company Admin)
+    - wa_numbers.view, wa_numbers.create, wa_numbers.edit, wa_numbers.delete
+    - wa_number_assignments.manage
+    - billing.view, billing.topup
+    - company_settings.manage
+
+ C. MANAJEMEN TIM (Company Admin & Supervisor)
+    - users.view, users.create, users.edit, users.delete
+    - roles.assign
+
+ D. MANAJEMEN KONTAK
+    - contacts.list_all      : (Admin, Supervisor) Bisa lihat semua kontak perusahaan
+    - contacts.list_assigned : (Operator) Hanya bisa lihat kontak yang diassign kepadanya
+    - contacts.create        : (Semua Role)
+    - contacts.edit          : (Semua Role)
+    - contacts.delete        : (Admin, Supervisor)
+    - contacts.assign        : (Admin, Supervisor)
+
+ E. MANAJEMEN PESAN / INBOX
+    - messages.read_all      : (Admin, Supervisor) Membaca semua chat di perusahaan
+    - messages.read_assigned : (Operator) Membaca chat yang diassign kepadanya / pada nomor WA yang dia pegang
+    - messages.send          : (Semua Role) Mengirim pesan biasa
+    - messages.delete        : (Admin) Menghapus pesan
+
+ F. MANAJEMEN CAMPAIGN (BLAST)
+    - campaigns.view         : (Admin, Supervisor)
+    - campaigns.create       : (Admin, Supervisor)
+    - campaigns.execute      : (Admin) Memulai pengiriman massal
+    - campaigns.delete       : (Admin)
+
+ 4. CATATAN IMPLEMENTASI
+ ─────────────────────────────────────────────────────────────────────────────
+ - Pengecekan authorization di Laravel menggunakan middleware `can:permission_name`
+ - Di Vue.js (Inertia), daftar permission user yang sedang login akan diinject melalui Inertia Shared Data (app.js) sehingga frontend bisa menyembunyikan tombol yang tidak berhak diakses.

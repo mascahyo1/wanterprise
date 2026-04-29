@@ -1,0 +1,47 @@
+================================================================================
+ API & WEBHOOKS: Meta WhatsApp Official API
+ Deskripsi : Panduan struktur dan alur penerimaan webhook dari Meta
+================================================================================
+
+ 1. KONFIGURASI WEBHOOK
+ ─────────────────────────────────────────────────────────────────────────────
+ Endpoint URL      : https://{domain}/api/webhooks/meta
+ Method            : GET (untuk verifikasi) / POST (untuk payload data)
+ Webhook Verify    : Menggunakan token unik dari `configurations` atau `wa_numbers`
+ Signature Check   : Validasi header `X-Hub-Signature-256` menggunakan App Secret Meta.
+
+ 2. JENIS-JENIS EVENT (PAYLOAD) YANG DI-HANDLE
+ ─────────────────────────────────────────────────────────────────────────────
+ A. Messages (Pesan Masuk)
+    - Teks
+    - Media (Image, Video, Document, Audio) -> Perlu diunduh & disimpan ke storage lokal/S3
+    - Location, Contacts, Interactive (Button Reply, List Reply)
+
+ B. Statuses (Status Pesan Keluar)
+    - `sent`      : Pesan berhasil dikirim ke server WA
+    - `delivered` : Pesan sampai di HP penerima
+    - `read`      : Pesan dibaca oleh penerima
+    - `failed`    : Pesan gagal (harus mencatat `last_error` di tabel `messages`)
+
+ C. Account Updates
+    - `phone_number_quality_update` : Meta mengubah status nomor (Green/Yellow/Red)
+    - `messaging_limit_update`      : Meta menaikkan/menurunkan limit harian (1K, 10K, dll)
+
+ 3. ALUR PEMROSESAN WEBHOOK (CONTROLLER & JOBS)
+ ─────────────────────────────────────────────────────────────────────────────
+ 1. Controller WebhookMetaController menerima Request POST.
+ 2. Lakukan validasi `X-Hub-Signature-256` (jika tidak valid, return 401).
+ 3. Return 200 OK ke server Meta secepat mungkin (jangan biarkan Meta menunggu).
+ 4. Dispatch `ProcessMetaWebhookJob` ke antrean (Queue).
+
+ 4. PROCESS META WEBHOOK JOB
+ ─────────────────────────────────────────────────────────────────────────────
+ - Parsing isi JSON.
+ - Cari `wa_number_id` yang cocok berdasarkan `display_phone_number` / `phone_number_id`.
+ - Jika Event = Message:
+   > Cek apakah kontak sudah ada di `contacts`. Jika belum, Auto-Create.
+   > Insert ke tabel `messages`.
+   > Broadcast event via Laravel Reverb (`MessageReceived`) ke private channel.
+ - Jika Event = Status:
+   > Update baris di tabel `messages` sesuai status terbaru.
+   > Broadcast event via Laravel Reverb (`MessageStatusUpdated`).
