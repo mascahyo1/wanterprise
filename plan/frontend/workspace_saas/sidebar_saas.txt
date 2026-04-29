@@ -3,7 +3,7 @@
  Deskripsi : Pemetaan menu navigasi sidebar khusus untuk Operator SaaS (Super Admin)
 ================================================================================
 
- Sidebar ini hanya muncul jika user yang login memiliki `company_id = null` (Super Admin).
+ Sidebar ini hanya muncul jika user yang login memiliki Role `Super Admin` (difilter menggunakan Spatie Permissions, bukan sekadar melihat company_id).
 
  ─────────────────────────────────────────────────────────────────────────────
  MENU ITEMS
