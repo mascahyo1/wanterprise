@@ -9,6 +9,7 @@
  ─────────────────────────────────────────────────────────────────────────────
  id                  UUIDv7              PK
  name                string(255)         Nama permission (contoh: 'messages.send')
+ description         text null           Penjelasan detail (contoh: 'Akses untuk mengirim atau membalas pesan')
  scope               enum                'saas' | 'company' (Untuk membedakan ini fitur global SaaS atau fitur internal perusahaan)
  order_column        integer             Urutan tampilan di UI (agar rapi saat di-render)
  guard_name          string(255)         Default: 'web'
@@ -20,6 +21,7 @@
  id                  UUIDv7              PK
  company_id          UUIDv7 null         FK → companies.id
  name                string(255)         Nama role (contoh: 'Super Admin', 'Operator')
+ description         text null           Penjelasan scope pekerjaan (contoh: 'Hanya bisa membalas chat')
  scope               enum                'saas' | 'company'
  order_column        integer             Urutan tampilan di UI
  guard_name          string(255)         Default: 'web'
