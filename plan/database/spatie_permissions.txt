@@ -9,6 +9,7 @@
  ─────────────────────────────────────────────────────────────────────────────
  id                  UUIDv7              PK
  name                string(255)         Nama permission (contoh: 'messages.send')
+ scope               enum                'saas' | 'company' (Untuk membedakan ini fitur global SaaS atau fitur internal perusahaan)
  guard_name          string(255)         Default: 'web'
  created_at          timestamp
  updated_at          timestamp
