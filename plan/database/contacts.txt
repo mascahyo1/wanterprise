@@ -9,7 +9,9 @@
  company_id          UUIDv7              FK → companies.id
  wa_number_id        UUIDv7              FK → wa_numbers.id (nomor yang dipakai chat)
  wa_id               string(50)          WhatsApp ID kontak (format: 628xxx@s.whatsapp.net)
- phone_number        string(20)          Nomor telepon kontak
+ phone_number        string(20)          Nomor telepon kontak penuh (e.g. 628123...)
+ country_code        string(5)           Kode negara (e.g. 62)
+ national_number     string(20)          Nomor telepon tanpa kode negara (e.g. 8123...)
  name                string(255) null    Nama kontak (dari profil WA atau input manual)
  avatar_url          string(255) null    URL foto profil
  notes               text null           Catatan internal tentang kontak ini

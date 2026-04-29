@@ -7,7 +7,9 @@
  ─────────────────────────────────────────────────────────────────────────────
  id                  UUIDv7              PK
  company_id          UUIDv7              FK → companies.id
- phone_number        string(20)          Nomor WA format internasional (+628xxx)
+ phone_number        string(20)          Nomor WA format penuh (e.g. 628123...)
+ country_code        string(5)           Kode negara (e.g. 62)
+ national_number     string(20)          Nomor WA tanpa kode negara (e.g. 8123...)
  display_name        string(255)         Nama tampilan di WhatsApp Business
  waba_id             string(100)         WhatsApp Business Account ID
                                          (1 WABA bisa punya banyak phone number)
