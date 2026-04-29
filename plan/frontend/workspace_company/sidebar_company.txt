@@ -38,3 +38,10 @@
        ├─ Team & Users (Aksi: Tambah staf, assign nomor WA / kontak ke operator)
        ├─ Roles & Permissions (Aksi: Mengatur batas hak akses custom)
        ├─ Company Profile (Aksi: Ubah nama, logo perusahaan)
+
+ ─────────────────────────────────────────────────────────────────────────────
+ UX / UI BEHAVIOR
+ ─────────────────────────────────────────────────────────────────────────────
+ - Toggle Hide/Show: Sidebar HARUS bisa disembunyikan (full hide) dan dimunculkan (show) kembali untuk memperluas area kerja utama (terutama penting saat membuka halaman Inbox/Chat).
+ - Pemicu (Trigger): Terdapat sebuah tombol/icon toggle (hamburger menu / sidebar-toggle) di area Top Navbar.
+ - State Penyimpanan: Status sidebar (terbuka atau tertutup) disarankan disimpan di localStorage agar persisten antar sesi.
