@@ -1,0 +1,34 @@
+================================================================================
+ FRONTEND: SaaS Workspace Routes & Views (Vue.js + Inertia)
+ Deskripsi : Pemetaan halaman SPA khusus untuk Super Admin (Pengelola SaaS)
+================================================================================
+
+ 1. LAYOUT
+ ─────────────────────────────────────────────────────────────────────────────
+ - SaasLayout.vue : Mengandung <SidebarSaas /> dan Top Navbar khusus admin pusat.
+
+ 2. PETA ROUTE & VIEWS
+ ─────────────────────────────────────────────────────────────────────────────
+ Base Prefix: `/admin`
+
+ [Dashboard]
+ GET  /admin                   -> Saas/Dashboard.vue
+      (Menampilkan statistik global: total tenant, MRR, server status)
+
+ [Companies (Tenants) Management]
+ GET  /admin/companies         -> Saas/Companies/Index.vue
+ GET  /admin/companies/create  -> Saas/Companies/Create.vue
+ GET  /admin/companies/{id}    -> Saas/Companies/Show.vue
+
+ [SaaS Users Management]
+ GET  /admin/users             -> Saas/Users/Index.vue
+ GET  /admin/users/create      -> Saas/Users/Create.vue
+
+ [Global Settings]
+ GET  /admin/settings          -> Saas/Settings/Index.vue
+      (Konfigurasi SMTP, batas default upload, maintenance mode)
+
+ 3. STATE MANAGEMENT & LOGIC
+ ─────────────────────────────────────────────────────────────────────────────
+ - Di-render hanya jika user login memiliki role Super Admin.
+ - Jika Super Admin melakukan aksi "Login As", mereka akan diarahkan ke Company Route & Layout.

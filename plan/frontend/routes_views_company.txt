@@ -1,0 +1,49 @@
+================================================================================
+ FRONTEND: Company Workspace Routes & Views (Vue.js + Inertia)
+ Deskripsi : Pemetaan halaman SPA untuk operasional Tenant (Perusahaan)
+================================================================================
+
+ 1. LAYOUTS
+ ─────────────────────────────────────────────────────────────────────────────
+ - GuestLayout.vue    : Halaman public (Login, Register, Forgot Password).
+ - CompanyLayout.vue  : Mengandung <SidebarCompany /> dan Top Navbar utama. Ada global listener Reverb.
+
+ 2. PETA ROUTE & VIEWS
+ ─────────────────────────────────────────────────────────────────────────────
+ [Auth]
+ GET  /login                   -> Auth/Login.vue
+ GET  /register                -> Auth/Register.vue
+
+ [Dashboard]
+ GET  /dashboard               -> Company/Dashboard.vue
+      (Statistik pesan harian, sisa saldo)
+
+ [Inbox & Chatting]
+ GET  /inbox                   -> Company/Inbox/Index.vue
+      - Components: ChatList.vue, ChatBubble.vue, MessageInput.vue, ContactSidebar.vue
+
+ [Contacts Management]
+ GET  /contacts                -> Company/Contacts/Index.vue 
+ GET  /contacts/{id}           -> Company/Contacts/Show.vue  
+ GET  /contact-labels          -> Company/Contacts/Labels.vue
+
+ [Blast Campaigns]
+ GET  /campaigns               -> Company/Campaigns/Index.vue
+ GET  /campaigns/create        -> Company/Campaigns/Create.vue
+ GET  /campaigns/{id}          -> Company/Campaigns/Show.vue
+
+ [Billing & Wallet]
+ GET  /billing                 -> Company/Billing/Index.vue 
+
+ [Company Settings]
+ GET  /settings/wa-numbers     -> Company/Settings/WaNumbers.vue
+ GET  /settings/users          -> Company/Settings/Users.vue
+ GET  /settings/roles          -> Company/Settings/Roles.vue
+ GET  /settings/profile        -> Company/Settings/Profile.vue
+
+ 3. STATE MANAGEMENT (PINIA)
+ ─────────────────────────────────────────────────────────────────────────────
+ Digunakan khusus untuk logika operasional harian perusahaan:
+ - `useChatStore` : Menyimpan state obrolan aktif, unread count.
+ - `useThemeStore`: Mode terang/gelap (simpan ke localStorage).
+ - `useCompanyStore`: Data perusahaan saat ini (Logo, sisa saldo realtime).
