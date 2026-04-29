@@ -1,0 +1,49 @@
+================================================================================
+ TABLE: spatie_permission_tables (roles, permissions, etc.)
+ Deskripsi : Struktur tabel untuk RBAC menggunakan package Spatie Laravel-Permission
+================================================================================
+
+ Secara default, package Spatie akan di-publish dan dimodifikasi agar mendukung arsitektur multi-tenant (SaaS) kita, serta menggunakan UUIDv7.
+
+ 1. TABLE: permissions
+ ─────────────────────────────────────────────────────────────────────────────
+ id                  UUIDv7              PK
+ name                string(255)         Nama permission (contoh: 'messages.send')
+ guard_name          string(255)         Default: 'web'
+ created_at          timestamp
+ updated_at          timestamp
+
+ 2. TABLE: roles
+ ─────────────────────────────────────────────────────────────────────────────
+ id                  UUIDv7              PK
+ company_id          UUIDv7 null         FK → companies.id (PENTING UNTUK SAAS)
+ name                string(255)         Nama role (contoh: 'Super Admin', 'Operator')
+ guard_name          string(255)         Default: 'web'
+ created_at          timestamp
+ updated_at          timestamp
+
+ *Catatan: `company_id` ditambahkan agar setiap perusahaan/tenant bisa membuat Custom Role mereka sendiri tanpa mengganggu tabel global/perusahaan lain. Untuk role bawaan sistem (seperti Super Admin), `company_id` bernilai null.
+
+ 3. TABLE: role_has_permissions (Pivot)
+ ─────────────────────────────────────────────────────────────────────────────
+ permission_id       UUIDv7              FK → permissions.id
+ role_id             UUIDv7              FK → roles.id
+
+ 4. TABLE: model_has_permissions (Pivot)
+ ─────────────────────────────────────────────────────────────────────────────
+ permission_id       UUIDv7              FK → permissions.id
+ model_type          string(255)         Default: 'App\Models\User'
+ model_id            UUIDv7              FK → users.id
+
+ 5. TABLE: model_has_roles (Pivot)
+ ─────────────────────────────────────────────────────────────────────────────
+ role_id             UUIDv7              FK → roles.id
+ model_type          string(255)         Default: 'App\Models\User'
+ model_id            UUIDv7              FK → users.id
+
+ ─────────────────────────────────────────────────────────────────────────────
+ INDEXES & RELATIONS
+ ─────────────────────────────────────────────────────────────────────────────
+ - Pengecekan default bawaan Spatie (membuat unique constraint `name` + `guard_name`).
+ - Pada tabel `roles`, unique constraint menjadi `name` + `guard_name` + `company_id`.
+ - Relasi morphTo() dipakai Spatie secara otomatis (`model_type` & `model_id`).
