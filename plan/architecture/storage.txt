@@ -1,0 +1,47 @@
+================================================================================
+ ARCHITECTURE: File Storage Strategy
+ Deskripsi : Kebijakan penyimpanan aset digital dan file media Wanterprise
+================================================================================
+
+ 1. PRIMARY STORAGE: AMAZON S3 (ATAU S3-COMPATIBLE)
+ ─────────────────────────────────────────────────────────────────────────────
+ Wanterprise diwajibkan menggunakan sistem penyimpanan objek (Object Storage) berbasis S3 (seperti AWS S3, Cloudflare R2, DigitalOcean Spaces, atau MinIO). 
+
+ Alasan (Enterprise Grade):
+ - Skalabilitas tak terbatas (sangat krusial untuk menampung jutaan lampiran chat WhatsApp).
+ - Meringankan beban server aplikasi utama (Disk I/O).
+ - Mendukung pembatasan akses berbasis URL sementara (Presigned URLs) untuk file sensitif klien.
+
+ 2. PENGGUNAAN S3 PADA FITUR APLIKASI
+ ─────────────────────────────────────────────────────────────────────────────
+ Seluruh file akan dipisah berdasarkan isolasi Tenant (`company_id`).
+
+ A. Media Pesan WhatsApp (Inbound & Outbound)
+    - Setiap gambar, video, dokumen, atau audio yang dikirim/diterima via API WhatsApp (Meta/Provider) akan segera diunggah ke S3.
+    - Path Format: `[company_id]/messages/[year]/[month]/[random_hash].[ext]`
+    
+ B. Media Campaign / Blast
+    - File media yang diunggah untuk keperluan broadcast massal.
+    - Path Format: `[company_id]/campaigns/[campaign_id]/[file_name].[ext]`
+
+ C. Profil & Logo
+    - Foto profil user dan logo perusahaan.
+    - Path Format: `public/avatars/users/[user_id].[ext]` atau `public/avatars/companies/[company_id].[ext]`
+    - Visibility: Public-Read.
+
+ D. Export Data & Laporan (Reports)
+    - File CSV/Excel hasil *generate* sistem (biasanya dikerjakan secara *background* oleh Queue).
+    - Path Format: `[company_id]/exports/[random_hash].csv`
+
+ 3. SECURITY & PRIVACY (MULTI-TENANT STORAGE)
+ ─────────────────────────────────────────────────────────────────────────────
+ - Pemisahan Direktori: Semua file milik tenant WAJIB terisolasi di dalam direktori `[company_id]/`.
+ - Private Bucket: Bucket S3 TIDAK BOLEH dikonfigurasi sebagai *public bucket*.
+ - Presigned URLs: Untuk melihat lampiran pesan chat atau mengunduh laporan, Laravel akan men-generate *Presigned URL* yang hanya berlaku sementara (misal: 1 jam), *setelah* Laravel memvalidasi bahwa user yang meminta memang berhak (memiliki *permission*) melihat file dari `company_id` tersebut.
+ - File yang *public* murni hanyalah avatar dan logo (disimpan di direktori `public/`).
+
+ 4. LARAVEL FILESYSTEM CONFIGURATION
+ ─────────────────────────────────────────────────────────────────────────────
+ - Driver `s3` akan diatur sebagai `FILESYSTEM_DISK` default di file `.env`.
+ - Direktori lokal (`storage/app`) hanya digunakan sebagai *temporary storage* saat sistem sedang memproses *file* sebelum dikirim ke S3 (misal saat *compressing image* atau *chunk upload*).
+================================================================================
