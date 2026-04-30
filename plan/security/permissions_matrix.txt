@@ -3,60 +3,68 @@
  Deskripsi : Struktur Role-Based Access Control (RBAC) pada Wanterprise
 ================================================================================
 
- 1. HIERARKI ROLES
+ 1. KONSEP DYNAMIC RBAC (ENTERPRISE-GRADE)
  ─────────────────────────────────────────────────────────────────────────────
- [SaaS Level]
- - Super Admin     : Mengelola seluruh platform SaaS (Company, Konfigurasi Global, dll)
- 
- [Company Level]
- - Company Admin   : Owner/Manager di sebuah perusahaan (Akses penuh fitur perusahaannya)
- - Supervisor      : Mengawasi Operator, bisa melihat semua inbox dan report
- - Operator        : CS/Agen balasan chat. Hanya bisa membalas dan melihat kontak yang diassign kepadanya.
+ Wanterprise menggunakan konsep Dynamic Roles yang fleksibel di tingkat Perusahaan (Tenant). 
+ Peran (Roles) tidak di-hardcode. Perusahaan bebas menentukan struktur organisasinya sendiri.
 
- 2. FORMAT PENAMAAN PERMISSION
+ [SaaS Level / System Level]
+ - System Admin    : (Default Role) Role level sistem pertama. Sistem di level SaaS juga bersifat dinamis (memungkinkan pembuatan custom role seperti "SaaS Support" atau "SaaS Finance"). Role ini secara EKSPLISIT di-assign permission level SaaS. TIDAK ADA role statis maupun 'bypass permission' bahkan di level tertinggi sekalipun.
+ 
+ [Company Level / Tenant Level]
+ - Company Owner   : (Default Role) Role pertama yang dibuat otomatis untuk pembuat perusahaan. Role ini secara EKSPLISIT di-assign seluruh permission yang tersedia di level perusahaan (tenant). TIDAK ADA 'bypass permission', semua akses divalidasi ketat lewat pengecekan permission yang melekat pada role ini.
+ - Custom Roles    : Perusahaan dapat membuat peran kustom tak terbatas (misal: "Supervisor Regional A", "CS Keuangan", "Agen Level 1", dll).
+   * Owner/Admin dapat dengan bebas mencentang (assign) permission granular apa saja yang boleh diakses oleh Custom Role tersebut.
+
+ 2. FORMAT PENAMAAN PERMISSION (GRANULAR)
  ─────────────────────────────────────────────────────────────────────────────
  Format standar : {resource}.{action}
- Contoh         : messages.send, contacts.create
+ Permission ini di-seed di sistem dan bersifat statis, namun role-nya dinamis.
 
- 3. MATRIKS PERMISSIONS BERDASARKAN ROLE
+ 3. DAFTAR PERMISSIONS TERSEDIA (CATALOG)
  ─────────────────────────────────────────────────────────────────────────────
+ Berikut adalah daftar permission granular yang dapat diracik/di-assign ke dalam Custom Role:
 
- A. MANAJEMEN APLIKASI (Hanya Super Admin)
+ A. SAAS MANAGEMENT (Hanya untuk pengguna di level System/SaaS, tidak muncul di Company)
     - companies.view, companies.create, companies.edit, companies.delete
     - saas_users.view, saas_users.create, saas_users.edit, saas_users.delete
     - global_settings.manage
 
- B. MANAJEMEN WA NUMBERS & BILLING (Company Admin)
+ B. COMPANY & BILLING
     - wa_numbers.view, wa_numbers.create, wa_numbers.edit, wa_numbers.delete
     - wa_number_assignments.manage
     - billing.view, billing.topup
     - company_settings.manage
 
- C. MANAJEMEN TIM (Company Admin & Supervisor)
+ C. USER & ROLE MANAGEMENT (Akses Sensitif)
     - users.view, users.create, users.edit, users.delete
-    - roles.assign
+    - roles.view, roles.create, roles.edit, roles.delete
+    - permissions.assign  (Hak untuk mengatur permission pada suatu role)
 
- D. MANAJEMEN KONTAK
-    - contacts.list_all      : (Admin, Supervisor) Bisa lihat semua kontak perusahaan
-    - contacts.list_assigned : (Operator) Hanya bisa lihat kontak yang diassign kepadanya
-    - contacts.create        : (Semua Role)
-    - contacts.edit          : (Semua Role)
-    - contacts.delete        : (Admin, Supervisor)
-    - contacts.assign        : (Admin, Supervisor)
+ D. CONTACT MANAGEMENT
+    - contacts.view_all      : Akses melihat seluruh database kontak perusahaan
+    - contacts.view_assigned : Akses melihat kontak yang di-assign padanya saja
+    - contacts.create        : Menambah kontak baru
+    - contacts.edit          : Mengubah data kontak
+    - contacts.delete        : Menghapus kontak
+    - contacts.assign        : Mengoper/mengassign kontak ke user lain
 
- E. MANAJEMEN PESAN / INBOX
-    - messages.read_all      : (Admin, Supervisor) Membaca semua chat di perusahaan
-    - messages.read_assigned : (Operator) Membaca chat yang diassign kepadanya / pada nomor WA yang dia pegang
-    - messages.send          : (Semua Role) Mengirim pesan biasa
-    - messages.delete        : (Admin) Menghapus pesan
+ E. INBOX / MESSAGING
+    - messages.read_all      : Mengintip/membaca semua obrolan di perusahaan
+    - messages.read_assigned : Membaca obrolan miliknya sendiri / nomor WA yang dia tangani
+    - messages.send          : Hak membalas/mengirim pesan
+    - messages.delete        : Menghapus riwayat obrolan
 
- F. MANAJEMEN CAMPAIGN (BLAST)
-    - campaigns.view         : (Admin, Supervisor)
-    - campaigns.create       : (Admin, Supervisor)
-    - campaigns.execute      : (Admin) Memulai pengiriman massal
-    - campaigns.delete       : (Admin)
+ F. CAMPAIGN / BLAST
+    - campaigns.view         : Melihat daftar campaign
+    - campaigns.create       : Membuat draft campaign
+    - campaigns.execute      : Mengeksekusi/menjalankan pengiriman blast
+    - campaigns.delete       : Menghapus data campaign
 
- 4. CATATAN IMPLEMENTASI
+ 4. CATATAN IMPLEMENTASI (PURE MULTI-TENANCY)
  ─────────────────────────────────────────────────────────────────────────────
- - Pengecekan authorization di Laravel menggunakan middleware `can:permission_name`
- - Di Vue.js (Inertia), daftar permission user yang sedang login akan diinject melalui Inertia Shared Data (app.js) sehingga frontend bisa menyembunyikan tombol yang tidak berhak diakses.
+ - Pengecekan authorization di backend (Laravel) memvalidasi Permission, bukan Role. Contoh: `can('messages.send')`. Jangan pernah melakukan pengecekan `hasRole('RoleName')` di backend tenant karena nama role bisa diubah-ubah oleh klien.
+ - NO BYPASS RULE: Tidak boleh ada logika bypass (misal menggunakan Gate::before) untuk mem-bypass pengecekan permission. Semua role harus secara eksplisit memiliki permission tersebut di database.
+ - PURE TENANT ARCHITECTURE: Tidak ada akun "mengambang" tanpa perusahaan (`company_id = null` adalah HARAM). Operator SaaS/System pada dasarnya adalah *user* biasa yang terdaftar di "Company Induk" (misalnya perusahaan pengelola SaaS). Pembeda mereka hanyalah mereka memegang *Role* yang secara eksplisit di-assign *Permission* tingkat SaaS (seperti `companies.view`). Semua struktur database 100% konsisten wajib terikat pada `company_id`.
+ - Spatie Laravel Permission harus dikonfigurasi secara muti-tenant (Team feature diaktifkan / modifikasi `company_id` pada tabel roles) agar Role "CS" di Company A berbeda dengan Role "CS" di Company B.
+ - Pada Vue.js (Inertia), daftar permission (array string) user login saat ini akan di-inject via Shared Data. Frontend menggunakan array tersebut untuk me-render atau menyembunyikan tombol/menu secara dinamis.

@@ -1,0 +1,49 @@
+================================================================================
+ SECURITY: Authentication & Protection Policies
+ Deskripsi : Kebijakan keamanan tambahan untuk Wanterprise mencakup MFA dan Rate Limiting
+================================================================================
+
+ 1. MULTI-FACTOR AUTHENTICATION (MFA) / 2FA
+ ─────────────────────────────────────────────────────────────────────────────
+ Tujuan: Melindungi akun seluruh pengguna dari akses tidak sah meskipun password bocor.
+
+ A. Target Pengguna:
+    - Seluruh Pengguna (Super Admin, Company Admin, Supervisor, Operator): Wajib (Mandatory)
+
+ B. Metode MFA yang Didukung:
+    - Time-based One-Time Password (TOTP) menggunakan aplikasi seperti Google Authenticator, Authy, atau Microsoft Authenticator.
+    - (Opsi Masa Depan) Email OTP / SMS OTP.
+
+ C. Alur Penggunaan:
+    1. User login dengan email dan password.
+    2. Sistem mengecek status MFA.
+    3. Jika aktif, user diarahkan ke halaman input kode OTP (6 digit).
+    4. Setelah kode divalidasi, session login diberikan.
+
+ D. Recovery:
+    - Menyediakan Recovery Codes (misal: 10 kode cadangan) saat aktivasi MFA pertama kali, untuk berjaga-jaga jika user kehilangan akses ke aplikasi authenticator.
+
+ 2. RATE LIMITING & THROTTLING
+ ─────────────────────────────────────────────────────────────────────────────
+ Tujuan: Mencegah serangan brute-force, DDoS skala kecil, dan penyalahgunaan API.
+
+ A. Login Throttling (Brute-force Protection):
+    - Batas: Maksimal 5 kali percobaan login gagal dalam 1 menit per IP Address / Email.
+    - Hukuman (Lockout): Akun / IP dikunci selama 1 menit, dan bertambah secara eksponensial jika terus gagal (misal: 5 menit, 15 menit).
+    - Notifikasi: Mengirimkan peringatan email ke pengguna jika terjadi beberapa kali login gagal beruntun.
+
+ B. API Rate Limiting (Untuk endpoint publik / Webhook):
+    - Public API: 60 requests per menit per IP / API Key.
+    - Webhook (Penerimaan Pesan WA): Tidak ada limit (No Rate Limit). Hal ini untuk memastikan tidak ada pesan masuk yang tertolak atau hilang saat trafik sedang tinggi.
+    - Jika melebihi batas (pada Public API), kembalikan HTTP Status Code `429 Too Many Requests`.
+
+ C. Throttling Fitur Khusus:
+    - Lupa Password (Forgot Password): Maksimal request 3 kali dalam 1 jam per email untuk menghindari email spamming.
+    - OTP / Resend Code: Batas waktu tunggu (cooldown) minimal 60 detik sebelum user dapat meminta ulang kode.
+    - Pengiriman Pesan (Blast / Campaign): Throttling diatur pada level antrean (Queue) bukan HTTP request, untuk memastikan pesan dikirim sesuai dengan batas aman WhatsApp (misal: jeda acak 2-5 detik antar pesan) untuk menghindari pemblokiran nomor.
+
+ 3. IMPLEMENTASI (LARAVEL)
+ ─────────────────────────────────────────────────────────────────────────────
+ - MFA: Dapat diimplementasikan menggunakan Laravel Fortify (yang sudah mendukung Two-Factor Authentication secara bawaan) atau package eksternal seperti `pragmarx/google2fa-laravel`.
+ - Throttling: Menggunakan fitur bawaan Laravel `RateLimiter` (yang diatur di `RouteServiceProvider` atau langsung via middleware `throttle` pada routes).
+ - Login Brute-force: Memanfaatkan trait `ThrottlesLogins` bawaan Laravel UI / Breeze / Jetstream.
