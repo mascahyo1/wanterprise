@@ -18,11 +18,16 @@
  [Companies (Tenants) Management]
  GET  /admin/companies         -> Saas/Companies/Index.vue
  GET  /admin/companies/create  -> Saas/Companies/Create.vue
- GET  /admin/companies/{id}    -> Saas/Companies/Show.vue
+ GET  /admin/companies/{id}    -> Saas/Companies/Show.vue 
+      (Halaman ini mencakup Tab untuk me-manage/kick user dari Workspace ini)
 
- [SaaS Users & Roles Management]
- GET  /admin/users             -> Saas/Users/Index.vue
- GET  /admin/users/create      -> Saas/Users/Create.vue
+ [Platform Users (Global)]
+ GET  /admin/platform-users    -> Saas/PlatformUsers/Index.vue
+      (Menampilkan semua user lintas perusahaan untuk kebutuhan Suspend Global)
+
+ [Internal Staff & Roles Management]
+ GET  /admin/staff             -> Saas/Staff/Index.vue
+ GET  /admin/staff/create      -> Saas/Staff/Create.vue
  GET  /admin/roles             -> Saas/Roles/Index.vue
  GET  /admin/roles/create      -> Saas/Roles/Create.vue
 

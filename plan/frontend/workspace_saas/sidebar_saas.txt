@@ -13,11 +13,16 @@
  
  🏢 Companies (Tenants)
     ├─ Aksi: Menampilkan daftar perusahaan pelanggan.
-    ├─ Sub-aksi: Tambah Perusahaan, Suspend Perusahaan, Akses Login As (Menyamar sebagai admin perusahaan tersebut untuk bantuan support).
+    ├─ Sub-aksi: Tambah Perusahaan, Suspend Perusahaan, Akses Login As.
+    ├─ Halaman Detail: Terdapat Tab "Workspace Users" untuk menghapus/kick user spesifik dari perusahaan ini saja (Suspend Parsial).
 
- 👨‍💻 SaaS Users & Roles
+ 🌍 Platform Users
+    ├─ Aksi: Menampilkan seluruh user Wanterprise lintas perusahaan.
+    ├─ Sub-aksi: Suspend Global Account (banned `is_active = false`), Reset Password.
+
+ 👨‍💻 Internal Staff & Roles
     ├─ Sub-menu:
-       ├─ All Users (Aksi: Manajemen staf internal Wanterprise)
+       ├─ Staff Directory (Aksi: Manajemen staf internal pengelola SaaS)
        ├─ Roles & Permissions (Aksi: Mengatur custom roles untuk scope 'saas', misal Role 'Support Agent')
 
  ⚙️ System Settings
