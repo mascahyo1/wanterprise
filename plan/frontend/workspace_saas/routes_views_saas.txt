@@ -20,9 +20,11 @@
  GET  /admin/companies/create  -> Saas/Companies/Create.vue
  GET  /admin/companies/{id}    -> Saas/Companies/Show.vue
 
- [SaaS Users Management]
+ [SaaS Users & Roles Management]
  GET  /admin/users             -> Saas/Users/Index.vue
  GET  /admin/users/create      -> Saas/Users/Create.vue
+ GET  /admin/roles             -> Saas/Roles/Index.vue
+ GET  /admin/roles/create      -> Saas/Roles/Create.vue
 
  [Global Settings]
  GET  /admin/settings          -> Saas/Settings/Index.vue

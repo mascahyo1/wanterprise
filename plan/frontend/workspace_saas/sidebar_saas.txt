@@ -15,8 +15,10 @@
     ├─ Aksi: Menampilkan daftar perusahaan pelanggan.
     ├─ Sub-aksi: Tambah Perusahaan, Suspend Perusahaan, Akses Login As (Menyamar sebagai admin perusahaan tersebut untuk bantuan support).
 
- 👨‍💻 SaaS Users
-    ├─ Aksi: Manajemen user internal Wanterprise (Super Admin lain).
+ 👨‍💻 SaaS Users & Roles
+    ├─ Sub-menu:
+       ├─ All Users (Aksi: Manajemen staf internal Wanterprise)
+       ├─ Roles & Permissions (Aksi: Mengatur custom roles untuk scope 'saas', misal Role 'Support Agent')
 
  ⚙️ System Settings
     ├─ Aksi: Konfigurasi global (Maintenance mode, SMTP Email, dll).
