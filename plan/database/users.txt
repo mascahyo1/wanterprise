@@ -1,9 +1,9 @@
 ================================================================================
  TABLE: users
- Deskripsi : Semua pengguna sistem — SaaS Operator & Company Operator/tim
+ Deskripsi : Khusus pengguna tenant/klien (Company Owner, Supervisor, Operator).
 ================================================================================
 
- 6. COLUMNS
+ 1. COLUMNS
  ─────────────────────────────────────────────────────────────────────────────
  id                  UUIDv7              PK
  name                string(255)         Nama lengkap
@@ -12,19 +12,19 @@
  avatar              string(255) null    Path avatar/foto profil
  theme_preference    enum                light | dark | system (default: system)
  is_active           boolean             Default: true
- current_company_id  UUIDv7              FK → companies.id (Menyimpan workspace yang sedang aktif dibuka, HARAM NULL)
+ current_company_id  UUIDv7 null         FK → companies.id (Boleh NULL HANYA saat fitur "SaaS Mode" aktif)
  last_login_at       timestamp null      Waktu login terakhir
  created_at          timestamp
  updated_at          timestamp
  deleted_at          timestamp null      Soft delete
 
- 21. INDEXES
+ 2. INDEXES
  ─────────────────────────────────────────────────────────────────────────────
  • UNIQUE  email
  • INDEX   is_active
  • INDEX   current_company_id
 
- 27. RELATIONS
+ 3. RELATIONS
  ─────────────────────────────────────────────────────────────────────────────
  • belongsToMany  companies              (via company_user.user_id → users.id)
  • belongsTo      current_company        (users.current_company_id → companies.id)
@@ -34,11 +34,11 @@
  • belongsToMany  contacts              (via contact_assignments.user_id → users.id)
  • belongsToMany  wa_numbers            (via wa_number_assignments.user_id → users.id)
 
- 36. NOTES
+ 4. NOTES
  ─────────────────────────────────────────────────────────────────────────────
  • PK menggunakan UUIDv7 — time-sortable, aman untuk distributed system
  • User bisa terikat pada banyak perusahaan (Many-to-Many via tabel `company_user`).
- • `current_company_id` digunakan murni untuk alasan UX. WAJIB ISI (Tidak boleh null). Jika user baru mendaftar, proses registrasi harus mewajibkan pembuatan company atau menggunakan *invitation link* agar kolom ini langsung terisi.
- • Pembedaan pengguna biasa dan SaaS Operator MURNI menggunakan Spatie Roles (tidak ada hardcode kolom).
+ • `current_company_id` mengatur konteks workspace (Tenant Mode). Kolom ini boleh `null` JIKA DAN HANYA JIKA user tersebut sedang mengaktifkan "SaaS Mode" (berjalan di level sistem).
+ • Hak akses untuk memunculkan tombol "Switch to SaaS Mode" ditentukan dari eksistensi `user_id` mereka di tabel `saas_users` dengan status `is_active = true`.
  • Soft delete agar history pesan & aktivitas tetap terjaga
 ================================================================================

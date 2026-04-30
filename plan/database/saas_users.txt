@@ -7,25 +7,21 @@
  1. COLUMNS
  ─────────────────────────────────────────────────────────────────────────────
  id                  UUIDv7              PK
- name                string(255)         Nama lengkap
- email               string(255)         Email login (unique)
- password            string(255)         Bcrypt hashed
- avatar              string(255) null    Path avatar/foto profil
- is_active           boolean             Default: true
- last_login_at       timestamp null      Waktu login terakhir
+ user_id             UUIDv7              FK → users.id (User yang diberikan akses SaaS)
+ is_active           boolean             Default: true (Status aktif sebagai SaaS Admin)
  created_at          timestamp
  updated_at          timestamp
- deleted_at          timestamp null      Soft delete
 
  2. INDEXES
  ─────────────────────────────────────────────────────────────────────────────
- • UNIQUE  email
+ • UNIQUE  user_id
  • INDEX   is_active
 
  3. RELATIONS
  ─────────────────────────────────────────────────────────────────────────────
- • morphMany      (Spatie) roles       (Guard: 'saas')
- • morphMany      (Spatie) permissions (Guard: 'saas')
+ • belongsTo      users
+ • morphMany      (Spatie) roles       (Spatie role di-assign ke entitas SaasUser ini)
+ • morphMany      (Spatie) permissions (Spatie permission di-assign ke entitas SaasUser ini)
 
  4. NOTES
  ─────────────────────────────────────────────────────────────────────────────
