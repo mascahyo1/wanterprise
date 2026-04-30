@@ -10,9 +10,8 @@
  wa_number_id        UUIDv7              FK → wa_numbers.id
  created_by          UUIDv7              FK → users.id
  name                string(255)         Nama kampanye
- message_type        enum                text | template
- message_body        text                Isi pesan (atau nama template)
- template_params     json null           Variable untuk template message
+ wa_template_id      UUIDv7              FK → wa_templates.id (Wajib menggunakan template yang disetujui Meta)
+ template_params     json null           Mapping data kontak (variable) ke komponen template (header, body, button)
  status              enum                draft | scheduled | running | done | failed
  scheduled_at        timestamp null      Waktu jadwal kirim (null = langsung)
  started_at          timestamp null      Waktu mulai dikirim
@@ -37,6 +36,7 @@
  • belongsTo  companies             (blast_campaigns.company_id → companies.id)
  • belongsTo  wa_numbers            (blast_campaigns.wa_number_id → wa_numbers.id)
  • belongsTo  users                 (blast_campaigns.created_by → users.id)
+ • belongsTo  wa_templates          (blast_campaigns.wa_template_id → wa_templates.id)
  • hasMany    blast_recipients      (blast_recipients.blast_campaign_id → blast_campaigns.id)
  • hasMany    messages              (messages.blast_campaign_id → blast_campaigns.id)
 
@@ -45,5 +45,6 @@
  • PK menggunakan UUIDv7 — time-sortable, aman untuk distributed system
  • Pengiriman diproses via Laravel Queue (background job), bukan sinkron
  • total_sent / delivered / read / failed diupdate secara realtime via webhook
+ • HARUS MENGGUNAKAN TEMPLATE: Mengikuti aturan ketat Meta Cloud API, pesan blast tidak bisa diketik manual (free-text). Wajib mengacu pada `wa_template_id` yang berstatus APPROVED.
  • Permission: blast.create, blast.send
 ================================================================================

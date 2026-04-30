@@ -1,0 +1,34 @@
+================================================================================
+ TABLE: wa_templates
+ Deskripsi : Menyimpan data Message Templates yang sudah disetujui oleh Meta (sinkronisasi dari WA Business API)
+================================================================================
+
+ COLUMNS
+ ─────────────────────────────────────────────────────────────────────────────
+ id                  UUIDv7              PK
+ company_id          UUIDv7              FK → companies.id
+ wa_account_id       string(255)         WhatsApp Business Account ID (WABA ID)
+ name                string(255)         Nama template di Meta (e.g. promo_ramadhan)
+ language            string(10)          Kode bahasa (e.g. id, en_US)
+ category            string(50)          Kategori (MARKETING, UTILITY, AUTHENTICATION)
+ components          json                Struktur komponen (HEADER, BODY, FOOTER, BUTTONS) beserta variable-nya
+ status              string(50)          Status approval dari Meta (APPROVED, PENDING, REJECTED)
+ created_at          timestamp
+ updated_at          timestamp
+
+ INDEXES
+ ─────────────────────────────────────────────────────────────────────────────
+ • INDEX   company_id
+ • UNIQUE  wa_account_id + name + language
+
+ RELATIONS
+ ─────────────────────────────────────────────────────────────────────────────
+ • belongsTo      companies             (wa_templates.company_id → companies.id)
+ • hasMany        blast_campaigns       (blast_campaigns.wa_template_id → wa_templates.id)
+
+ NOTES
+ ─────────────────────────────────────────────────────────────────────────────
+ • Berdasarkan aturan ketat Meta Cloud API, pesan business-initiated (Blast/Campaign) TIDAK BOLEH berupa free-text. Harus menggunakan template yang sudah diajukan ke Meta dan berstatus APPROVED.
+ • Tabel ini berfungsi sebagai *cache* atau cermin (mirror) dari template yang ada di server Meta agar UI aplikasi kita bisa menampilkan *dropdown* pilihan template dengan cepat.
+ • Sistem akan mensinkronisasikan (webhook/polling) status template dari Meta secara berkala.
+================================================================================
